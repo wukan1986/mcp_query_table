@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "query_table"
+authors = [
+    { name = "wukan", email = "wu-kan@163.com" },
+]
+description = "query table from website"
+readme = "README.md"
+requires-python = ">=3.9"
+keywords = ["playwright", "table", "iwencai", "tdx", "eastmoney"]
+license = { file = "LICENSE" }
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python"
+]
+dependencies = [
+    "pandas",
+    "loguru",
+    "playwright",
+]
+dynamic = ["version"]
+
+
+[tool.setuptools]
+packages = [
+    "query_table",
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "query_table._version.__version__" }
