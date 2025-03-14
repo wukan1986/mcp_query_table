@@ -129,6 +129,7 @@ def query(page: Page,
     # 这里不用处理输入编码问题
     page.goto(f"https://xuangu.eastmoney.com/Result?q={q}&type={type}", wait_until="load")
     while P.lock:
+        logger.info("等待数据...")
         page.wait_for_event('response')
 
     while P.has_next(max_page):
@@ -137,6 +138,7 @@ def query(page: Page,
         P.lock = True
         page.get_by_role("button", name="下一页").click()
         while P.lock:
+            logger.info("等待数据...")
             page.wait_for_event('response')
 
     return P.get_dataframe()

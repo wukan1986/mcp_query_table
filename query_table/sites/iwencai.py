@@ -2,7 +2,8 @@
 同花顺 i问财
 https://www.iwencai.com/
 
-1. 一定要保证浏览器宽度，防止界面变成适应手机
+1. 一定要保证浏览器宽度>768，防止界面变成适应手机
+
 """
 import re
 
@@ -152,6 +153,9 @@ def query(page: Page,
     page.on("response", on_response)
 
     P.reset()
+    # page.viewport_size # 取出来是None
+    # 宽度<=768会认为是手机,>768是PC
+    page.set_viewport_size({"width": 1024, "height": 768})
     # 这里不用处理输入编码问题
     page.goto(f"https://www.iwencai.com/unifiedwap/result?w={w}&querytype={querytype}", wait_until="load")
 

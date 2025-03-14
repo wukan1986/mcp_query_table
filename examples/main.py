@@ -5,7 +5,7 @@ def run() -> None:
     # 启动浏览器，browser_path最好是Chrome的绝对路劲
     playwright, browser, context, page = launch_browser(port=9222, browser_path=None)
 
-    # TODO 问财需要保证浏览器宽度，防止界面变成适应手机
+    # 问财需要保证浏览器宽度>768，防止界面变成适应手机
     df = query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.iwencai)
     print(df)
     df = query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.tdx)
