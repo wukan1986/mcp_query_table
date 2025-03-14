@@ -4,7 +4,7 @@ https://xuangu.eastmoney.com/
 
 1. 部分数据中包含中文单位，如万亿等，导致无法转换为数字，如VOLUME
 2. 东财翻页需要提前手工登录
-3. 东财翻页是页面已经翻了，然后等数据来更新，这会导致翻页数不对
+3. 东财翻页是页面已经翻了，然后等数据来更新，懒加载
 """
 import re
 
@@ -49,7 +49,6 @@ class Pagination:
         self.total = 1024
         self.columns = []
         self.datas = {}
-        self.lock = False
 
     def reset(self):
         self.datas = {}
@@ -60,7 +59,6 @@ class Pagination:
         self.total = total
         self.columns = columns
         self.datas[self.pageNo] = dataList
-        self.lock = False
 
     def has_next(self, max_page):
         c1 = self.pageNo * self.pageSize < self.total
@@ -121,24 +119,20 @@ def query(page: Page,
     type = _type_.get(type, type)
 
     page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
-    page.on("response", on_response)
+    # page.on("response", on_response)
 
     P.reset()
-
-    P.lock = True
-    # 这里不用处理输入编码问题
-    page.goto(f"https://xuangu.eastmoney.com/Result?q={q}&type={type}", wait_until="load")
-    while P.lock:
-        logger.info("等待数据...")
-        page.wait_for_event('response')
+    with page.expect_response(_PAGE1_) as response_info:
+        # 这里不用处理输入编码问题
+        page.goto(f"https://xuangu.eastmoney.com/Result?q={q}&type={type}", wait_until="load")
+    on_response(response_info.value)
 
     while P.has_next(max_page):
         logger.info("当前页为:{}, 点击`下一页`", P.current())
 
-        P.lock = True
-        page.get_by_role("button", name="下一页").click()
-        while P.lock:
-            logger.info("等待数据...")
-            page.wait_for_event('response')
+        # 这种写法解决了懒加载问题
+        with page.expect_response(_PAGE1_) as response_info:
+            page.get_by_role("button", name="下一页").click()
+        on_response(response_info.value)
 
     return P.get_dataframe()
