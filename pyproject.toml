@@ -27,6 +27,7 @@ dynamic = ["version"]
 [tool.setuptools]
 packages = [
     "query_table",
+    "query_table.sites",
 ]
 
 [tool.setuptools.dynamic]
