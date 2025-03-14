@@ -34,8 +34,7 @@ def launch_browser(playwright: Optional[Playwright] = None,
 
     """
     if playwright is None:
-        # TODO 这写法会不会又问题？
-        playwright = sync_playwright().__enter__()
+        playwright = sync_playwright().start()
 
     try:
         # 尝试连接已打开的浏览器
@@ -55,8 +54,11 @@ def launch_browser(playwright: Optional[Playwright] = None,
         subprocess.Popen(command, shell=True)
         time.sleep(3)
 
-        # 可能出现edge打开远程调试端口失败
-        browser = playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{port}", slow_mo=1000, timeout=5000)
+        try:
+            browser = playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{port}", slow_mo=1000, timeout=5000)
+        except:
+            logger.warning("是否提前打开了浏览器，但未开启远程调试端口？请关闭浏览器全部进程后重试")
+            raise
 
     context = browser.contexts[0]
     # page = context.new_page()

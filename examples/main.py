@@ -16,6 +16,7 @@ def run() -> None:
 
     print('done')
     browser.close()
+    playwright.stop()
 
 
 if __name__ == '__main__':
