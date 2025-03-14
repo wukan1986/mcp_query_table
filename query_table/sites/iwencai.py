@@ -4,6 +4,7 @@ https://www.iwencai.com/
 
 1. 一定要保证浏览器宽度，防止界面变成适应手机
 """
+import re
 
 import pandas as pd
 from loguru import logger
@@ -147,8 +148,7 @@ def query(page: Page,
           max_page: int = 5) -> pd.DataFrame:
     querytype = _querytype_.get(querytype, querytype)
 
-    page.route("**/*.{png,jpg,jpeg,gif}", lambda route: route.abort())
-    page.route("**/*.{png,jpg,jpeg,gif}*", lambda route: route.abort())
+    page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
     page.on("response", on_response)
 
     P.reset()

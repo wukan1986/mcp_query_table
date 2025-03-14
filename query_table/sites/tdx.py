@@ -3,6 +3,7 @@
 https://wenda.tdx.com.cn/
 """
 import math
+import re
 
 import pandas as pd
 from loguru import logger
@@ -123,8 +124,7 @@ def query(page: Page,
           max_page: int = 5) -> pd.DataFrame:
     queryType = _queryType_.get(queryType, queryType)
 
-    page.route("**/*.{png,jpg,jpeg,gif}", lambda route: route.abort())
-    page.route("**/*.{png,jpg,jpeg,gif}*", lambda route: route.abort())
+    page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
     page.on("response", on_response)
 
     P.reset()

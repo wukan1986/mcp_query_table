@@ -6,6 +6,7 @@ https://xuangu.eastmoney.com/
 2. 东财翻页需要提前手工登录
 3. 东财翻页是页面已经翻了，然后等数据来更新，这会导致翻页数不对
 """
+import re
 
 import pandas as pd
 from loguru import logger
@@ -119,8 +120,7 @@ def query(page: Page,
           max_page: int = 5) -> pd.DataFrame:
     type = _type_.get(type, type)
 
-    page.route("**/*.{png,jpg,jpeg,gif}", lambda route: route.abort())
-    page.route("**/*.{png,jpg,jpeg,gif}*", lambda route: route.abort())
+    page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
     page.on("response", on_response)
 
     P.reset()
