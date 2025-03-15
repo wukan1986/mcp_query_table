@@ -31,6 +31,8 @@ _querytype_ = {
     '理财': 'lccp',
     '外汇': 'foreign_exchange',
     '宏观': 'macro',
+    #
+    QueryType.ETF: 'fund',  # 查ETF定位到基金
 }
 
 
