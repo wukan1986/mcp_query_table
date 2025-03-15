@@ -11,10 +11,11 @@ from query_table import QueryType, Site, launch_browser, query
 
 
 class QueryInput(BaseModel):
-    query_input: Annotated[str, Field(description="查询条件")]
-    query_type: Annotated[QueryType, Field(default=QueryType.CNStock, description="查询类型。目前支持`A股`、`指数`等")]
-    max_page: Annotated[int, Field(default=1, ge=1, le=10, description="最大页数。一般只查第一页即可")]
-    site: Annotated[Site, Field(default=Site.THS, description="站点。目前支持`东方财富`、`通达信`、`同花顺`")]
+    query_input: Annotated[str, Field(description="查询条件。支持复杂查询，如：`2024年涨幅最大的100只股票按市值排名`")]
+    query_type: Annotated[
+        QueryType, Field(default=QueryType.CNStock, description="查询类型。支持`A股`、`指数`、`基金`、`港股`、`美股`等")]
+    site: Annotated[Site, Field(default=Site.THS, description="站点。支持`东方财富`、`通达信`、`同花顺`")]
+    max_page: Annotated[int, Field(default=1, ge=1, le=10, description="最大页数。只查第一页即可")]
 
 
 class QueryServer:

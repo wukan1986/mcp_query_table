@@ -45,7 +45,7 @@ def convert_type(type):
         return str
     if type == 'INT':  # TODO 好像未出现过
         return int
-    return None
+    return type
 
 
 class Pagination:
@@ -86,13 +86,13 @@ class Pagination:
 
         df = pd.DataFrame(self.get_list())
         for k, v in dtypes.items():
-            if v is None:
-                logger.info("未识别的数据类型{}:{}", k, v)
+            if isinstance(v, str):
+                logger.info("未识别的数据类型 {}:{}", k, v)
                 continue
             try:
                 df[k] = df[k].astype(v)
             except ValueError:
-                logger.info("转换失败{}:{}", k, v)
+                logger.info("转换失败 {}:{}", k, v)
 
         return df.rename(columns=columns)
 
@@ -147,9 +147,10 @@ async def on_response(response):
 
 async def query(page: Page,
                 w: str = "收盘价>1000元",
-                querytype: QueryType = 'stock',
+                type_: QueryType = 'stock',
                 max_page: int = 5) -> pd.DataFrame:
-    querytype = _querytype_.get(querytype, querytype)
+    querytype = _querytype_.get(type_, None)
+    assert querytype is not None, f"不支持的类型:{type_}"
 
     await page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
     page.on("response", on_response)

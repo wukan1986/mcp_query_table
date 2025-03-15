@@ -20,6 +20,7 @@ _queryType_ = {
     QueryType.CNStock: 'AG',
     QueryType.Fund: 'JJ',
     QueryType.Index: 'ZS',
+    QueryType.Info: 'ZX',
 }
 
 
@@ -32,9 +33,11 @@ def convert_type(type):
         return float
     if type == '0|9|1':
         return float
+    if type == '1|9|1':
+        return float
     if type == '2|9|1':
         return float
-    return None
+    return type
 
 
 class Pagination:
@@ -82,13 +85,13 @@ class Pagination:
             if k == 'POS':
                 df[k] = df[k].astype(int)
                 continue
-            if v is None:
-                logger.info("未识别的数据类型{}:{}", k, v)
+            if isinstance(v, str):
+                logger.info("未识别的数据类型 {}:{}", k, v)
                 continue
             try:
                 df[k] = df[k].astype(v)
             except ValueError:
-                logger.info("转换失败{}:{}", k, v)
+                logger.info("转换失败 {}:{}", k, v)
         return df
 
 
@@ -120,9 +123,10 @@ async def on_response(response):
 
 async def query(page: Page,
                 message: str = "收盘价>100元",
-                queryType: QueryType = 'AG',
+                type_: QueryType = 'AG',
                 max_page: int = 5) -> pd.DataFrame:
-    queryType = _queryType_.get(queryType, queryType)
+    queryType = _queryType_.get(type_, None)
+    assert queryType is not None, f"不支持的类型:{type_}"
 
     await page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
     page.on("response", on_response)

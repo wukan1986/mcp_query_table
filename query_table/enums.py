@@ -11,6 +11,7 @@ class QueryType(Enum):
     ETF = 'ETF'
     ConBond = '可转债'
     Board = '板块'
+    Info = '资讯'
 
 
 class Site(Enum):
