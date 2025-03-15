@@ -155,7 +155,7 @@ async def query(page: Page,
     P.reset()
     # page.viewport_size # 取出来是None
     # 宽度<=768会认为是手机,>768是PC
-    await page.set_viewport_size({"width": 1024, "height": 768})
+    await page.set_viewport_size({"width": 1280, "height": 800})
     # 这里不用处理输入编码问题
     await page.goto(f"https://www.iwencai.com/unifiedwap/result?w={w}&querytype={querytype}", wait_until="load")
 

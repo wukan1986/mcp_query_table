@@ -1,6 +1,6 @@
 # query_table
 
-基于`playwright`实现的网页表格查询器。目前可用于
+基于`playwright`实现的网页表格爬虫，支持`Model Context Protocol (MCP) `。目前可查询来源为
 
 - [同花顺i问财](http://iwencai.com/)
 - [通达信问小达](https://wenda.tdx.com.cn/)
@@ -18,29 +18,32 @@ pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade query_table
 ## 使用
 
 ```python
+import asyncio
+
 from query_table import *
 
 
-def run() -> None:
-    # 启动浏览器，browser_path最好是Chrome的绝对路劲
-    playwright, browser, context, page = launch_browser(port=9222, browser_path=None)
+async def main() -> None:
+   # 启动浏览器，browser_path最好是Chrome的绝对路径
+   playwright, browser, context, page = await launch_browser(port=9222, browser_path=None)
+   print(browser.is_connected(), page.is_closed())
 
-    # TODO 问财需要保证浏览器宽度，防止界面变成适应手机
-    df = query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.THS)
-    print(df)
-    df = query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.TDX)
-    print(df)
-    # TODO 东财翻页要提前登录
-    df = query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.EastMoney)
-    print(df)
+   # # 问财需要保证浏览器宽度>768，防止界面变成适应手机
+   df = await query(page, '上证50成分股', query_type=QueryType.CNStock, max_page=3, site=Site.THS)
+   print(df.to_markdown())
+   df = await query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.TDX)
+   print(df.to_csv())
+   # # TODO 东财翻页要提前登录
+   df = await query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.EastMoney)
+   print(df)
 
-    print('done')
-    browser.close()
+   print('done')
+   await browser.close()
+   await playwright.stop()
 
 
 if __name__ == '__main__':
-    run()
-
+   asyncio.run(main())
 
 ```
 
@@ -73,6 +76,38 @@ if __name__ == '__main__':
 此项目采用的是模拟点击浏览器来发送请求，使用截获响应并解析的方法来获取数据。
 
 后期会根据不同的网站改版情况，使用更适合的方法。
+
+## MCP支持
+
+确保可以在控制台中执行`python -m query_table -h`。如果不能，可能要先`pip install query_table`
+
+在`Cline`中可以配置如下。其中`command`是`python`的绝对路径，`browser_path`是`Chrome`的绝对路径。
+
+```json
+{
+  "mcpServers": {
+    "query_table": {
+      "command": "D:\\Users\\Kan\\miniconda3\\envs\\py312\\python.exe",
+      "args": [
+        "-m",
+        "query_table",
+        "--format",
+        "markdown",
+        "--browser_path",
+        "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+      ]
+    }
+  }
+}
+```
+
+使用`MCP Inspector`进行调试
+
+```commandline
+npx @modelcontextprotocol/inspector python -m query_table --format markdown
+```
+
+第一次尝试编写`MCP`项目，可能会有各种问题，欢迎大家交流。
 
 ## 参考
 

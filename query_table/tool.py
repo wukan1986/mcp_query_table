@@ -49,8 +49,8 @@ async def launch_browser(playwright: Optional[Playwright] = None,
                     raise ValueError("未找到浏览器可执行文件")
 
         # 执行完成后不会关闭浏览器
-        command = f'"{browser_path}" --remote-debugging-port={port}'
-        logger.info(f"启动浏览器:{command}")
+        command = f'"{browser_path}" --remote-debugging-port={port} --start-maximized'
+        logger.info(f"start browser:{command}")
         subprocess.Popen(command, shell=True)
         time.sleep(3)
 
@@ -61,7 +61,6 @@ async def launch_browser(playwright: Optional[Playwright] = None,
             raise
 
     context = browser.contexts[0]
-    # page = context.new_page()
     page = context.pages[0]
 
     return playwright, browser, context, page
