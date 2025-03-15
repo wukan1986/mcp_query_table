@@ -5,14 +5,14 @@ from typing import Optional, Tuple
 
 import pandas as pd
 from loguru import logger
-from playwright.sync_api import sync_playwright, Playwright, Browser, BrowserContext, Page
+from playwright.async_api import async_playwright, Playwright, Browser, BrowserContext, Page
 
 from query_table.enums import QueryType, Site
 
 
-def launch_browser(playwright: Optional[Playwright] = None,
-                   port: int = 9222,
-                   browser_path: Optional[str] = None) -> Tuple[Playwright, Browser, BrowserContext, Page]:
+async def launch_browser(playwright: Optional[Playwright] = None,
+                         port: int = 9222,
+                         browser_path: Optional[str] = None) -> Tuple[Playwright, Browser, BrowserContext, Page]:
     r"""启动浏览器，并连接CDP协议
 
     Parameters
@@ -34,11 +34,11 @@ def launch_browser(playwright: Optional[Playwright] = None,
 
     """
     if playwright is None:
-        playwright = sync_playwright().start()
+        playwright = await async_playwright().start()
 
     try:
         # 尝试连接已打开的浏览器
-        browser = playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{port}", slow_mo=1000, timeout=5000)
+        browser = await playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{port}", slow_mo=1000, timeout=5000)
     except:
         if browser_path is None:
             browser_path = r'C:\Program Files\Google\Chrome\Application\chrome.exe'
@@ -55,7 +55,7 @@ def launch_browser(playwright: Optional[Playwright] = None,
         time.sleep(3)
 
         try:
-            browser = playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{port}", slow_mo=1000, timeout=5000)
+            browser = await playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{port}", slow_mo=1000, timeout=5000)
         except:
             logger.warning("是否提前打开了浏览器，但未开启远程调试端口？请关闭浏览器全部进程后重试")
             raise
@@ -67,18 +67,18 @@ def launch_browser(playwright: Optional[Playwright] = None,
     return playwright, browser, context, page
 
 
-def query(page: "Page",
-          input: str = "收盘价>100元",
-          query_type: QueryType = QueryType.CNStock,
-          max_page: int = 5,
-          site=Site.iwencai) -> pd.DataFrame:
+async def query(page: Page,
+                query_input: str = "收盘价>100元",
+                query_type: QueryType = QueryType.CNStock,
+                max_page: int = 5,
+                site: Site = Site.THS) -> pd.DataFrame:
     """查询表格
 
     Parameters
     ----------
     page : playwright.sync_api.Page
         页面
-    input : str, optional
+    query_input : str, optional
         查询条件, by default "收盘价>100元"
     query_type : QueryType, optional
         查询类型, by default QueryType.astock
@@ -94,14 +94,14 @@ def query(page: "Page",
 
     """
 
-    if site == Site.eastmoney:
+    if site == Site.EastMoney:
         from query_table.sites.eastmoney import query
-        return query(page, input, query_type, max_page)
-    if site == Site.iwencai:
+        return await query(page, query_input, query_type, max_page)
+    if site == Site.THS:
         from query_table.sites.iwencai import query
-        return query(page, input, query_type, max_page)
-    if site == Site.tdx:
+        return await query(page, query_input, query_type, max_page)
+    if site == Site.TDX:
         from query_table.sites.tdx import query
-        return query(page, input, query_type, max_page)
+        return await query(page, query_input, query_type, max_page)
 
     raise ValueError(f"未支持的站点:{site}")

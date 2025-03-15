@@ -9,7 +9,7 @@ import re
 
 import pandas as pd
 from loguru import logger
-from playwright.sync_api import Page
+from playwright.async_api import Page
 
 from query_table.enums import QueryType
 
@@ -136,32 +136,32 @@ json_data['answer']['components'][0]['data']['meta']['extra']['row_count']
     return datas, columns, int(page), int(limit), row_count
 
 
-def on_response(response):
+async def on_response(response):
     if response.url == _PAGE1_:
-        P.update(*get_robot_data(response.json()))
+        P.update(*get_robot_data(await response.json()))
     if response.url == _PAGE2_:
-        P.update(*getDataList(response.json()))
+        P.update(*getDataList(await response.json()))
 
 
-def query(page: Page,
-          w: str = "收盘价>1000元",
-          querytype: str = 'stock',
-          max_page: int = 5) -> pd.DataFrame:
+async def query(page: Page,
+                w: str = "收盘价>1000元",
+                querytype: QueryType = 'stock',
+                max_page: int = 5) -> pd.DataFrame:
     querytype = _querytype_.get(querytype, querytype)
 
-    page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
+    await page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
     page.on("response", on_response)
 
     P.reset()
     # page.viewport_size # 取出来是None
     # 宽度<=768会认为是手机,>768是PC
-    page.set_viewport_size({"width": 1024, "height": 768})
+    await page.set_viewport_size({"width": 1024, "height": 768})
     # 这里不用处理输入编码问题
-    page.goto(f"https://www.iwencai.com/unifiedwap/result?w={w}&querytype={querytype}", wait_until="load")
+    await page.goto(f"https://www.iwencai.com/unifiedwap/result?w={w}&querytype={querytype}", wait_until="load")
 
     while P.has_next(max_page):
         logger.info("当前页为:{}, 点击`下页`", P.current())
         # TODO 保持界面大小，防止变手机
-        page.get_by_text("下页").click()
+        await page.get_by_text("下页").click()
 
     return P.get_dataframe()

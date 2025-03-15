@@ -10,7 +10,7 @@ import re
 
 import pandas as pd
 from loguru import logger
-from playwright.sync_api import Page
+from playwright.async_api import Page
 
 from query_table.enums import QueryType
 
@@ -104,35 +104,35 @@ def search_code(json_data):
     return total, columns, dataList
 
 
-def on_response(response):
+async def on_response(response):
     if response.url == _PAGE1_:
         post_data_json = response.request.post_data_json
         pageNo = post_data_json['pageNo']
         pageSize = post_data_json['pageSize']
-        P.update(pageNo, pageSize, *search_code(response.json()))
+        P.update(pageNo, pageSize, *search_code(await response.json()))
 
 
-def query(page: Page,
-          q: str = "收盘价>100元",
-          type: str = 'stock',
-          max_page: int = 5) -> pd.DataFrame:
+async def query(page: Page,
+                q: str = "收盘价>100元",
+                type: QueryType = 'stock',
+                max_page: int = 5) -> pd.DataFrame:
     type = _type_.get(type, type)
 
-    page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
+    await page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
     # page.on("response", on_response)
 
     P.reset()
-    with page.expect_response(_PAGE1_) as response_info:
+    async with page.expect_response(_PAGE1_) as response_info:
         # 这里不用处理输入编码问题
-        page.goto(f"https://xuangu.eastmoney.com/Result?q={q}&type={type}", wait_until="load")
-    on_response(response_info.value)
+        await page.goto(f"https://xuangu.eastmoney.com/Result?q={q}&type={type}", wait_until="load")
+    await on_response(await response_info.value)
 
     while P.has_next(max_page):
         logger.info("当前页为:{}, 点击`下一页`", P.current())
 
         # 这种写法解决了懒加载问题
-        with page.expect_response(_PAGE1_) as response_info:
-            page.get_by_role("button", name="下一页").click()
-        on_response(response_info.value)
+        async with page.expect_response(_PAGE1_) as response_info:
+            await page.get_by_role("button", name="下一页").click()
+        await on_response(await response_info.value)
 
     return P.get_dataframe()

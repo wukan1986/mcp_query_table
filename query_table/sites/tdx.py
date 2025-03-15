@@ -7,7 +7,7 @@ import re
 
 import pandas as pd
 from loguru import logger
-from playwright.sync_api import Page
+from playwright.async_api import Page
 
 from query_table.enums import QueryType
 
@@ -111,29 +111,29 @@ def getAllCode(json_data):
     return row_count
 
 
-def on_response(response):
+async def on_response(response):
     if response.url.startswith(_PAGE1_):
-        P.update_last_count(*NLPQuery(response.json()))
+        P.update_last_count(*NLPQuery(await response.json()))
     if response.url.startswith(_PAGE2_):
-        P.update_row_count(getAllCode(response.json()))
+        P.update_row_count(getAllCode(await response.json()))
 
 
-def query(page: Page,
-          message: str = "收盘价>100元",
-          queryType: str = 'AG',
-          max_page: int = 5) -> pd.DataFrame:
+async def query(page: Page,
+                message: str = "收盘价>100元",
+                queryType: QueryType = 'AG',
+                max_page: int = 5) -> pd.DataFrame:
     queryType = _queryType_.get(queryType, queryType)
 
-    page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
+    await page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
     page.on("response", on_response)
 
     P.reset()
     # 这里不用处理输入编码问题
-    page.goto(f"https://wenda.tdx.com.cn/site/wenda/stock_index.html?message={message}&queryType={queryType}",
-              wait_until="load")
+    await page.goto(f"https://wenda.tdx.com.cn/site/wenda/stock_index.html?message={message}&queryType={queryType}",
+                    wait_until="load")
 
     while P.has_next(max_page):
         logger.info("当前序号为:{}, 点击`下一页`", P.current())
-        page.get_by_role("button", name="下一页").click()
+        await page.get_by_role("button", name="下一页").click()
 
     return P.get_dataframe()

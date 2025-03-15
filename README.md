@@ -26,12 +26,12 @@ def run() -> None:
     playwright, browser, context, page = launch_browser(port=9222, browser_path=None)
 
     # TODO 问财需要保证浏览器宽度，防止界面变成适应手机
-    df = query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.iwencai)
+    df = query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.THS)
     print(df)
-    df = query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.tdx)
+    df = query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.TDX)
     print(df)
     # TODO 东财翻页要提前登录
-    df = query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.eastmoney)
+    df = query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.EastMoney)
     print(df)
 
     print('done')
