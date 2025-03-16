@@ -153,18 +153,19 @@ async def query(page: Page,
     assert querytype is not None, f"不支持的类型:{type_}"
 
     await page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
-    page.on("response", on_response)
 
     P.reset()
     # page.viewport_size # 取出来是None
     # 宽度<=768会认为是手机,>768是PC
     await page.set_viewport_size({"width": 1280, "height": 800})
-    # 这里不用处理输入编码问题
-    await page.goto(f"https://www.iwencai.com/unifiedwap/result?w={w}&querytype={querytype}", wait_until="load")
+    async with page.expect_response(_PAGE1_) as response_info:
+        await page.goto(f"https://www.iwencai.com/unifiedwap/result?w={w}&querytype={querytype}", wait_until="load")
+    await on_response(await response_info.value)
 
     while P.has_next(max_page):
         logger.info("当前页为:{}, 点击`下页`", P.current())
-        # TODO 保持界面大小，防止变手机
-        await page.get_by_text("下页").click()
+        async with page.expect_response(_PAGE2_) as response_info:
+            await page.get_by_text("下页").click()
+        await on_response(await response_info.value)
 
     return P.get_dataframe()

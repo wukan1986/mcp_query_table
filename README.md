@@ -24,26 +24,26 @@ from query_table import *
 
 
 async def main() -> None:
-   # 启动浏览器，browser_path最好是Chrome的绝对路径
-   playwright, browser, context, page = await launch_browser(port=9222, browser_path=None)
-   print(browser.is_connected(), page.is_closed())
+    # 启动浏览器，browser_path最好是Chrome的绝对路径
+    playwright, browser, context, page = await launch_browser(port=9222, browser_path=None)
+    print(browser.is_connected(), page.is_closed())
 
-   # # 问财需要保证浏览器宽度>768，防止界面变成适应手机
-   df = await query(page, '上证50成分股', query_type=QueryType.CNStock, max_page=3, site=Site.THS)
-   print(df.to_markdown())
-   df = await query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.TDX)
-   print(df.to_csv())
-   # # TODO 东财翻页要提前登录
-   df = await query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.EastMoney)
-   print(df)
+    # # 问财需要保证浏览器宽度>768，防止界面变成适应手机
+    df = await query(page, '上证50成分股', query_type=QueryType.CNStock, max_page=3, site=Site.THS)
+    print(df.to_markdown())
+    df = await query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.TDX)
+    print(df.to_csv())
+    # # TODO 东财翻页要提前登录
+    df = await query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.EastMoney)
+    print(df)
 
-   print('done')
-   await browser.close()
-   await playwright.stop()
+    print('done')
+    await browser.close()
+    await playwright.stop()
 
 
 if __name__ == '__main__':
-   asyncio.run(main())
+    asyncio.run(main())
 
 ```
 
@@ -108,6 +108,17 @@ npx @modelcontextprotocol/inspector python -m query_table --format markdown
 ```
 
 第一次尝试编写`MCP`项目，可能会有各种问题，欢迎大家交流。
+
+## `MCP`使用技巧
+
+1. 2024年涨幅最大的100只股票按2024年12月31日总市值排名。三个网站的结果都不一样
+    - 同花顺：显示了2201只股票。前5个是工商银行、农业银行、中国移动、中国石油、建设银行
+    - 通达信：显示了100只股票，前5个是寒武纪、正丹股份，汇金科技、万丰奥威、艾融软件
+    - 东方财富：显示了100只股票，前5个是海光信息、寒武纪、光启技术、润泽科技、新易盛
+
+2. 大语言模型对问题拆分能力弱，所以要能合理的提问，保证查询条件不会被改动。以下推荐第二种
+    - 2024年涨幅最大的100只股票按2024年12月31日总市值排名
+    - 向东方财富查询“2024年涨幅最大的100只股票按2024年12月31日总市值排名”
 
 ## 参考
 

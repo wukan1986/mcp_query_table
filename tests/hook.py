@@ -46,6 +46,17 @@ def run(playwright: Playwright):
     page.goto("https://dc.simuwang.com/smph/b4n2a0")
     page.wait_for_timeout(1000 * 600)
 
+    # 这是另一种方式，直接获取页面的html，然后解析
+    """
+    tables = page.get_by_role("table")
+    for table in tables.all():
+        print("=" * 60)
+        inner_html = "<table>" + table.inner_html() + "</table>"
+        df = pd.read_html(StringIO(inner_html))
+        if len(df) > 0:
+            print(df[0])
+    """
+
 
 with sync_playwright() as playwright:
     run(playwright)
