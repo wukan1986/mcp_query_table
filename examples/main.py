@@ -16,7 +16,7 @@ async def main() -> None:
     df = await query(page, '流通市值前10的行业板块', query_type=QueryType.Index, max_page=1, site=Site.TDX)
     print(df.to_csv())
     # TODO 东财翻页要提前登录
-    df = await query(page, '收盘价>50元', query_type=QueryType.HKStock, max_page=3, site=Site.EastMoney)
+    df = await query(page, '今日涨幅前5的概念板块;', query_type=QueryType.Board, max_page=3, site=Site.EastMoney)
     print(df)
 
     print('done')

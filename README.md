@@ -28,12 +28,12 @@ async def main() -> None:
     playwright, browser, context, page = await launch_browser(port=9222, browser_path=None)
     print(browser.is_connected(), page.is_closed())
 
-    # # 问财需要保证浏览器宽度>768，防止界面变成适应手机
+    # 问财需要保证浏览器宽度>768，防止界面变成适应手机
     df = await query(page, '上证50成分股', query_type=QueryType.CNStock, max_page=3, site=Site.THS)
     print(df.to_markdown())
     df = await query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.TDX)
     print(df.to_csv())
-    # # TODO 东财翻页要提前登录
+    # ODO 东财翻页要提前登录
     df = await query(page, '收盘价>50元', query_type=QueryType.CNStock, max_page=3, site=Site.EastMoney)
     print(df)
 
@@ -116,9 +116,13 @@ npx @modelcontextprotocol/inspector python -m query_table --format markdown
     - 通达信：显示了100只股票，前5个是寒武纪、正丹股份，汇金科技、万丰奥威、艾融软件
     - 东方财富：显示了100只股票，前5个是海光信息、寒武纪、光启技术、润泽科技、新易盛
 
-2. 大语言模型对问题拆分能力弱，所以要能合理的提问，保证查询条件不会被改动。以下推荐第二种
+2. 大语言模型对问题拆分能力弱，所以要能合理的提问，保证查询条件不会被改动。以下推荐第2、3种
     - 2024年涨幅最大的100只股票按2024年12月31日总市值排名
+      > 大语言模型非常有可能拆分这句，导致一步查询被分成了多步查询
     - 向东方财富查询“2024年涨幅最大的100只股票按2024年12月31日总市值排名”
+      > 用引号括起来，避免被拆分
+    - 向东方财富板块查询 “去年涨的最差的行业板块”，再查询此板块中去年涨的最好的5只股票
+      > 分成两步查询，先查询板块，再查询股票。但最好不要全自动，因为第一步的结果它不理解“今日涨幅”和“区间涨幅”,需要交互修正
 
 ## 参考
 

@@ -20,9 +20,8 @@ from query_table.enums import QueryType
 # 'https://np-pick-b.eastmoney.com/api/smart-tag/hk/v3/pw/search-code'
 # 'https://np-pick-b.eastmoney.com/api/smart-tag/cb/v3/pw/search-code'
 # 'https://np-pick-b.eastmoney.com/api/smart-tag/etf/v3/pw/search-code'
-# 'https://np-pick-b.eastmoney.com/api/smart-tag/bk/v3/pw/search-code'
-_PAGE0_ = 'https://np-pick-b.eastmoney.com/api/smart-tag'
-_PAGE1_ = 'https://np-pick-b.eastmoney.com/api/smart-tag/{}/v3/pw/search-code'
+# 'https://np-pick-b.eastmoney.com/api/smart-tag/bkc/v3/pw/search-code'
+_PAGE1_ = 'https://np-pick-b.eastmoney.com/api/smart-tag/*/v3/pw/search-code'
 
 _type_ = {
     QueryType.CNStock: 'stock',
@@ -30,7 +29,7 @@ _type_ = {
     QueryType.HKStock: 'hk',
     QueryType.ConBond: 'cb',
     QueryType.ETF: 'etf',
-    QueryType.Board: 'bk',
+    QueryType.Board: 'bk',  # 比较坑，bkc和bkc的区别
 }
 
 
@@ -112,8 +111,6 @@ def search_code(json_data):
 
 
 async def on_response(response):
-    # if not response.url.startswith(_PAGE0_):
-    #     return
     post_data_json = response.request.post_data_json
     pageNo = post_data_json['pageNo']
     pageSize = post_data_json['pageSize']
@@ -126,12 +123,11 @@ async def query(page: Page,
                 max_page: int = 5) -> pd.DataFrame:
     type = _type_.get(type_, None)
     assert type is not None, f"不支持的类型:{type_}"
-    url = _PAGE1_.format(type)
 
     await page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
 
     P.reset()
-    async with page.expect_response(url) as response_info:
+    async with page.expect_response(_PAGE1_) as response_info:
         # 这里不用处理输入编码问题
         await page.goto(f"https://xuangu.eastmoney.com/Result?q={q}&type={type}", wait_until="load")
     await on_response(await response_info.value)
@@ -140,7 +136,7 @@ async def query(page: Page,
         logger.info("当前页为:{}, 点击`下一页`", P.current())
 
         # 这种写法解决了懒加载问题
-        async with page.expect_response(url) as response_info:
+        async with page.expect_response(_PAGE1_) as response_info:
             await page.get_by_role("button", name="下一页").click()
         await on_response(await response_info.value)
 
