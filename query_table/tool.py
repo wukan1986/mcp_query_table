@@ -49,7 +49,7 @@ async def launch_browser(playwright: Optional[Playwright] = None,
                     raise ValueError("未找到浏览器可执行文件")
 
         # 执行完成后不会关闭浏览器
-        command = f'"{browser_path}" --remote-debugging-port={port} --start-maximized'
+        command = f'"{browser_path}" --remote-debugging-port={port} --start-maximized'  # --auto-open-devtools-for-tabs
         logger.info(f"start browser:{command}")
         subprocess.Popen(command, shell=True)
         time.sleep(3)

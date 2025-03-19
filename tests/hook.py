@@ -3,48 +3,28 @@
 
 某网站返回的数据是json中有字段是加密的，需要获取解密后的内容
 """
-import pickle
-from datetime import datetime
+import asyncio
 
-from playwright.sync_api import sync_playwright, Playwright
-
-
-def hook_parse(obj):
-    # 可以hook函数后传递参数，直接解析，跳过了破解这一步，如果能获取到当前请求的url就更好了
-    if isinstance(obj, list):
-        if obj[0][0] == 'ShallowReactive':
-            print(str(datetime.now()) + ' === ' + str(obj))
-            # 保存后在另一个文件中做分析
-            with open('tmp.pkl', 'wb') as f:
-                pickle.dump(obj, f)
-
-            for i in range(0, len(obj)):
-                if isinstance(obj[i], dict):
-                    if len(obj[i]) == 56:
-                        print(obj[i + 1])
-
-            # with open('tmp.pkl', 'rb') as f:
-            #     obj = pickle.load(f)
-            # print(obj)
+from query_table import launch_browser
 
 
-def run(playwright: Playwright):
-    browser = playwright.chromium.connect_over_cdp(f"http://127.0.0.1:9222", slow_mo=1000, timeout=5000)
-    page = browser.contexts[0].pages[0]
-    page.expose_function("hook_parse", hook_parse)
-    page.add_init_script("""
-    (function() {
-        var parse = JSON.parse;
-        JSON.parse = function(params) {
-            // debugger;
-            obj = parse(params);
-            window.hook_parse(obj);
-            return obj;
-        }
-    })();
-    """)
-    page.goto("https://dc.simuwang.com/smph/b4n2a0")
-    page.wait_for_timeout(1000 * 600)
+def __hook(obj):
+    print(obj)
+
+
+async def main() -> None:
+    playwright, browser, context, page = await launch_browser(port=9222, browser_path=None)
+    print(browser.is_connected(), page.is_closed())
+
+    await page.expose_function("__hook", __hook)
+    # TODO 为何都是第一次hook不成，这可都是改文件了，怎么回事？
+    await page.route("https://dc.simuwang.com/_nuxt3/rY-FUFEX.js",
+                     lambda route: route.fulfill(path="rY-FUFEX.js"))  # 第3行
+    # await page.route("https://dc.simuwang.com/_nuxt3/DNmjgBLm.js",
+    #                  lambda route: route.fulfill(path="DNmjgBLm.js"))  # 第18268行
+    await page.goto("https://dc.simuwang.com/smph", wait_until="load")
+
+    await page.wait_for_timeout(1000 * 600)
 
     # 这是另一种方式，直接获取页面的html，然后解析
     """
@@ -58,5 +38,5 @@ def run(playwright: Playwright):
     """
 
 
-with sync_playwright() as playwright:
-    run(playwright)
+if __name__ == '__main__':
+    asyncio.run(main())
