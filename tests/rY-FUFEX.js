@@ -1,19 +1,8 @@
 import {N as a} from "./DNmjgBLm.js";
 
 const aaa = (x,y) => {
-    // TODO 为何第一次不调用？
-    if (window._i === undefined)
-    {
-        window._i=0;
-    }
-    else
-    {
-        window._i +=1;
-    }
-    console.log(x);
     const ret=a(x,y);
-
-    ret.then((res)=>{window.__hook(res)});
+    ret.then((r)=>{window.__hook(x,y,r)});
     return ret;
 };
 

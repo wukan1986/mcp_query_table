@@ -12,7 +12,8 @@ from query_table.enums import QueryType, Site
 
 async def launch_browser(playwright: Optional[Playwright] = None,
                          port: int = 9222,
-                         browser_path: Optional[str] = None) -> Tuple[Playwright, Browser, BrowserContext, Page]:
+                         browser_path: Optional[str] = None,
+                         debug: bool = False) -> Tuple[Playwright, Browser, BrowserContext, Page]:
     r"""启动浏览器，并连接CDP协议
 
     Parameters
@@ -23,6 +24,8 @@ async def launch_browser(playwright: Optional[Playwright] = None,
         浏览器调试端口
     browser_path
         浏览器可执行路径。推荐使用chrome，因为Microsoft Edge必须在任务管理器中完全退出才能启动调试端口
+    debug:bool
+        是否显示开发者工具
 
     Returns
     -------
@@ -49,7 +52,10 @@ async def launch_browser(playwright: Optional[Playwright] = None,
                     raise ValueError("未找到浏览器可执行文件")
 
         # 执行完成后不会关闭浏览器
-        command = f'"{browser_path}" --remote-debugging-port={port} --start-maximized'  # --auto-open-devtools-for-tabs
+        if debug:
+            command = f'"{browser_path}" --remote-debugging-port={port} --start-maximized --auto-open-devtools-for-tabs'
+        else:
+            command = f'"{browser_path}" --remote-debugging-port={port} --start-maximized'
         logger.info(f"start browser:{command}")
         subprocess.Popen(command, shell=True)
         time.sleep(3)
