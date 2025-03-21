@@ -13,9 +13,13 @@ import asyncio
 
 from query_table import launch_browser
 
+query = {}
+
 
 def __hook(x, y, obj):
     if x == '/sun/ranking/fundRankV3':
+        global query
+        query = y
         print(x)
         print(y)
         print(obj)
@@ -33,11 +37,13 @@ async def on_route(route, request):
     # <script type="module" src="/_nuxt3/BFem2fS2.js" crossorigin></script>
     print(request.url)
     body = body.replace("export{", """
-var _hook = uXpFetch;
+// 原函数注册到window，不是改版函数
+window.uXpFetch = uXpFetch;
+// 重写局部函数
 uXpFetch =async function(e,t) {
-const ret=_hook(e,t);
-ret.then((r)=>{window.__hook(e,t,r)});
-return ret;
+    const ret=window.uXpFetch(e,t);
+    ret.then((r)=>{window.__hook(e,t,r)});
+    return ret;
 };
 export{""")
 
@@ -56,9 +62,20 @@ async def main() -> None:
     await page.get_by_role("button", name="上一页", disabled=True).evaluate(
         'element => { element.removeAttribute("disabled"); element.removeAttribute("aria-disabled");}')
     await page.get_by_role("button", name="上一页").click()
+    # 方便记录请求参数
+    print(query)
+    print('=' * 60)
 
-    await page.get_by_role("button", name="下一页").click()
-    await page.get_by_role("button", name="下一页").click()
+    # 相当于requests，但解码麻烦
+    # r = await page.request.get('https://sppwapi.simuwang.com/sun/ranking/fundRankV3?page=1&size=50&condition=%7B%22fund_type%22:%226%22%7D&sort_name=ret_6m&sort_asc=desc&tab_type=1')
+    # print(await r.text())
+
+    # 更快速的请求方式
+    for i in range(1, 4):
+        # await page.get_by_role("button", name="下一页").click()
+        query['data']['page'] = i
+        r = await page.evaluate("([x, y])=>window.uXpFetch(x,y)", ['/sun/ranking/fundRankV3', query])
+        print(r)
 
     print('done')
     await page.wait_for_timeout(1000 * 10)
