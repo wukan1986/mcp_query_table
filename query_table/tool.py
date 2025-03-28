@@ -11,6 +11,11 @@ from query_table.enums import QueryType, Site
 
 
 class BrowserManager:
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.cleanup()
 
     def __init__(self, port: int = 9222, browser_path: Optional[str] = None, debug: bool = False):
         """
@@ -43,7 +48,7 @@ class BrowserManager:
         # 空闲page池
         self.pages = []
 
-    async def release(self):
+    async def cleanup(self):
         if self.browser:
             await self.browser.close()
         if self.playwright:
