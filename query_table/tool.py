@@ -84,8 +84,12 @@ class BrowserManager:
                 raise
 
         self.context = self.browser.contexts[0]
-        # 第一次连接，取第一个tab
-        self.pages.append(self.context.pages[0])
+        # 复用打开的page
+        for page in self.context.pages:
+            # 防止开发者工具被使用
+            if page.url.startswith("devtools://"):
+                continue
+            self.pages.append(page)
 
     async def _try_launch(self) -> None:
         if self.browser is None:
