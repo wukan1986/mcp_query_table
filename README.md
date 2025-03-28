@@ -25,7 +25,7 @@ from query_table import *
 
 async def main() -> None:
     # 启动浏览器，browser_path最好是Chrome的绝对路径
-    playwright, browser, context, page = await launch_browser(port=9222, browser_path=None)
+    playwright, browser, context, page = await launch_browser(cdp_port=9222, browser_path=None)
     print(browser.is_connected(), page.is_closed())
 
     # 问财需要保证浏览器宽度>768，防止界面变成适应手机
@@ -85,6 +85,8 @@ if __name__ == '__main__':
 
 在`Cline`中可以配置如下。其中`command`是`python`的绝对路径，`browser_path`是`Chrome`的绝对路径。
 
+### STDIO方式
+
 ```json
 {
   "mcpServers": {
@@ -103,7 +105,17 @@ if __name__ == '__main__':
 }
 ```
 
-使用`MCP Inspector`进行调试
+### SSE方式
+
+先在控制台中执行如下命令，启动`MCP`服务
+```commandline
+python -m query_table --format markdown --browser_path "C:\Program Files\Google\Chrome\Application\chrome.exe" --transport sse --mcp_port 8000
+```
+
+然后就可以连接到`MCP`服务了
+http://localhost:8000/sse
+
+## 使用`MCP Inspector`进行调试
 
 ```commandline
 npx @modelcontextprotocol/inspector python -m query_table --format markdown

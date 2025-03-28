@@ -51,7 +51,7 @@ export{""")
 
 
 async def main() -> None:
-    playwright, browser, context, page = await launch_browser(port=9222, browser_path=None, debug=True)
+    playwright, browser, context, page = await launch_browser(cdp_port=9222, browser_path=None, debug=True)
     print(browser.is_connected(), page.is_closed())
 
     await page.expose_function("__hook", __hook)

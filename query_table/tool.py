@@ -11,7 +11,7 @@ from query_table.enums import QueryType, Site
 
 
 async def launch_browser(playwright: Optional[Playwright] = None,
-                         port: int = 9222,
+                         cdp_port: int = 9222,
                          browser_path: Optional[str] = None,
                          debug: bool = False) -> Tuple[Playwright, Browser, BrowserContext, Page]:
     r"""启动浏览器，并连接CDP协议
@@ -20,7 +20,7 @@ async def launch_browser(playwright: Optional[Playwright] = None,
     ----------
     playwright:
         同步playwright对象。设成None时，会自动启动playwright对象。
-    port:int
+    cdp_port:int
         浏览器调试端口
     browser_path
         浏览器可执行路径。推荐使用chrome，因为Microsoft Edge必须在任务管理器中完全退出才能启动调试端口
@@ -41,7 +41,7 @@ async def launch_browser(playwright: Optional[Playwright] = None,
 
     try:
         # 尝试连接已打开的浏览器
-        browser = await playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{port}", slow_mo=1000, timeout=5000)
+        browser = await playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{cdp_port}", slow_mo=1000, timeout=5000)
     except:
         if browser_path is None:
             browser_path = r'C:\Program Files\Google\Chrome\Application\chrome.exe'
@@ -53,15 +53,16 @@ async def launch_browser(playwright: Optional[Playwright] = None,
 
         # 执行完成后不会关闭浏览器
         if debug:
-            command = f'"{browser_path}" --remote-debugging-port={port} --start-maximized --auto-open-devtools-for-tabs'
+            command = f'"{browser_path}" --remote-debugging-port={cdp_port} --start-maximized --auto-open-devtools-for-tabs'
         else:
-            command = f'"{browser_path}" --remote-debugging-port={port} --start-maximized'
+            command = f'"{browser_path}" --remote-debugging-port={cdp_port} --start-maximized'
         logger.info(f"start browser:{command}")
         subprocess.Popen(command, shell=True)
         time.sleep(3)
 
         try:
-            browser = await playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{port}", slow_mo=1000, timeout=5000)
+            browser = await playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{cdp_port}", slow_mo=1000,
+                                                                 timeout=5000)
         except:
             logger.warning("是否提前打开了浏览器，但未开启远程调试端口？请关闭浏览器全部进程后重试")
             raise

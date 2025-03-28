@@ -5,7 +5,7 @@ from query_table import *
 
 async def main() -> None:
     # 启动浏览器，browser_path最好是Chrome的绝对路径
-    playwright, browser, context, page = await launch_browser(port=9222, browser_path=None)
+    playwright, browser, context, page = await launch_browser(cdp_port=9222, browser_path=None)
     print(browser.is_connected(), page.is_closed())
 
     # 问财需要保证浏览器宽度>768，防止界面变成适应手机
