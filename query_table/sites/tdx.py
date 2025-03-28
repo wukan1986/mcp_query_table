@@ -115,9 +115,12 @@ def getAllCode(json_data):
     return row_count
 
 
-async def on_response(response):
+async def on_response1(response):
     if response.url.startswith(_PAGE1_):
         P.update_last_count(*NLPQuery(await response.json()))
+
+
+async def on_response2(response):
     if response.url.startswith(_PAGE2_):
         P.update_row_count(getAllCode(await response.json()))
 
@@ -130,17 +133,18 @@ async def query(page: Page,
     assert queryType is not None, f"不支持的类型:{type_}"
 
     await page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
+    page.on("response", on_response2)
 
     P.reset()
     async with page.expect_response(lambda response: response.url.startswith(_PAGE1_)) as response_info:
         await page.goto(f"https://wenda.tdx.com.cn/site/wenda/stock_index.html?message={message}&queryType={queryType}",
                         wait_until="load")
-    await on_response(await response_info.value)
+    await on_response1(await response_info.value)
 
     while P.has_next(max_page):
         logger.info("当前序号为:{}, 点击`下一页`", P.current())
         async with page.expect_response(lambda response: response.url.startswith(_PAGE1_)) as response_info:
             await page.get_by_role("button", name="下一页").click()
-        await on_response(await response_info.value)
+        await on_response1(await response_info.value)
 
     return P.get_dataframe()
