@@ -15,19 +15,25 @@ import revolving_asyncio  # pip install revolving_asyncio
 # revolving_asyncio.apply()
 
 # %%
-from query_table import launch_browser, query, QueryType, Site
+from query_table import query, QueryType, Site, BrowserManager
 
-launch_browser = revolving_asyncio.to_sync(launch_browser)
+bm = BrowserManager(port=9222, browser_path=None, debug=True)
 query = revolving_asyncio.to_sync(query)
+get_page = revolving_asyncio.to_sync(bm.get_page)
+release_page = revolving_asyncio.to_sync(bm.release_page)
 
 # %%
-playwright, browser, context, page = launch_browser(port=9222, browser_path=None)
-# %%
-df = query(page, '收盘价>50元的港股', query_type=QueryType.HKStock, max_page=3, site=Site.THS)
+page1 = get_page()
+page2 = get_page()
+df = query(page2, '收盘价>50元的港股', query_type=QueryType.HKStock, max_page=3, site=Site.THS)
+
 print(df.to_markdown())
+
 # %%
-df = query(page, '年初至今收益率前50', query_type=QueryType.Fund, max_page=3, site=Site.TDX)
+df = query(page1, '年初至今收益率前50', query_type=QueryType.Fund, max_page=3, site=Site.TDX)
 print(df.to_csv())
 # %%
-df = query(page, '收盘价>50元', query_type=QueryType.HKStock, max_page=3, site=Site.EastMoney)
+df = query(page2, '收盘价>50元', query_type=QueryType.HKStock, max_page=3, site=Site.EastMoney)
+release_page(page1)
+release_page(page2)
 print(df)
