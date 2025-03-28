@@ -21,7 +21,8 @@ from query_table.enums import QueryType
 # 'https://np-pick-b.eastmoney.com/api/smart-tag/cb/v3/pw/search-code'
 # 'https://np-pick-b.eastmoney.com/api/smart-tag/etf/v3/pw/search-code'
 # 'https://np-pick-b.eastmoney.com/api/smart-tag/bkc/v3/pw/search-code'
-_PAGE1_ = 'https://np-pick-b.eastmoney.com/api/smart-tag/*/v3/pw/search-code'
+# 'https://np-tjxg-b.eastmoney.com/api/smart-tag/bkc/v3/pw/search-code'
+_PAGE1_ = 'https://*.eastmoney.com/api/smart-tag/*/v3/pw/search-code'
 
 _type_ = {
     QueryType.CNStock: 'stock',
