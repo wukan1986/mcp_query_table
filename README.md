@@ -108,6 +108,7 @@ if __name__ == '__main__':
 ### SSE方式
 
 先在控制台中执行如下命令，启动`MCP`服务
+
 ```commandline
 python -m query_table --format markdown --browser_path "C:\Program Files\Google\Chrome\Application\chrome.exe" --transport sse --mcp_port 8000
 ```
@@ -120,6 +121,8 @@ http://localhost:8000/sse
 ```commandline
 npx @modelcontextprotocol/inspector python -m query_table --format markdown
 ```
+
+打开浏览器并翻页是一个比较耗时的操作，会导致`MCP Inspector`页面超时，可以`http://localhost:5173/?timeout=60000` 表示超时时间为60秒
 
 第一次尝试编写`MCP`项目，可能会有各种问题，欢迎大家交流。
 
