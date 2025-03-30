@@ -11,7 +11,7 @@
 """
 import asyncio
 
-from query_table import launch_browser
+from mcp_query_table import BrowserManager
 
 query = {}
 
@@ -51,36 +51,35 @@ export{""")
 
 
 async def main() -> None:
-    playwright, browser, context, page = await launch_browser(cdp_port=9222, browser_path=None, debug=True)
-    print(browser.is_connected(), page.is_closed())
+    async with BrowserManager(port=9222, browser_path=None, debug=True) as bm:
+        page = await bm.get_page()
+        await page.expose_function("__hook", __hook)
+        await page.route("**/_nuxt3/*.js", on_route)
+        await page.goto("https://dc.simuwang.com/smph", wait_until="load")
 
-    await page.expose_function("__hook", __hook)
-    await page.route("**/_nuxt3/*.js", on_route)
-    await page.goto("https://dc.simuwang.com/smph", wait_until="load")
+        # 强行翻页，产生fetch请求
+        await page.get_by_role("button", name="上一页", disabled=True).evaluate(
+            'element => { element.removeAttribute("disabled"); element.removeAttribute("aria-disabled");}')
+        await page.get_by_role("button", name="上一页").click()
+        # 方便记录请求参数
+        print(query)
+        print('=' * 60)
 
-    # 强行翻页，产生fetch请求
-    await page.get_by_role("button", name="上一页", disabled=True).evaluate(
-        'element => { element.removeAttribute("disabled"); element.removeAttribute("aria-disabled");}')
-    await page.get_by_role("button", name="上一页").click()
-    # 方便记录请求参数
-    print(query)
-    print('=' * 60)
+        # 相当于requests，但解码麻烦
+        # r = await page.request.get('https://sppwapi.simuwang.com/sun/ranking/fundRankV3?page=1&size=50&condition=%7B%22fund_type%22:%226%22%7D&sort_name=ret_6m&sort_asc=desc&tab_type=1')
+        # print(await r.text())
 
-    # 相当于requests，但解码麻烦
-    # r = await page.request.get('https://sppwapi.simuwang.com/sun/ranking/fundRankV3?page=1&size=50&condition=%7B%22fund_type%22:%226%22%7D&sort_name=ret_6m&sort_asc=desc&tab_type=1')
-    # print(await r.text())
+        # 更快速的请求方式
+        for i in range(1, 4):
+            # await page.get_by_role("button", name="下一页").click()
+            query['data']['page'] = i
+            r = await page.evaluate("([x, y])=>window.uXpFetch(x,y)", ['/sun/ranking/fundRankV3', query])
+            print(r)
 
-    # 更快速的请求方式
-    for i in range(1, 4):
-        # await page.get_by_role("button", name="下一页").click()
-        query['data']['page'] = i
-        r = await page.evaluate("([x, y])=>window.uXpFetch(x,y)", ['/sun/ranking/fundRankV3', query])
-        print(r)
-
-    print('done')
-    await page.wait_for_timeout(1000 * 10)
-    await browser.close()
-    await playwright.stop()
+        print('done')
+        await page.wait_for_timeout(1000 * 10)
+        bm.release_page(page)
+        await bm.cleanup()
 
 
 if __name__ == '__main__':
