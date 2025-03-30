@@ -12,7 +12,7 @@ import pandas as pd
 from loguru import logger
 from playwright.async_api import Page
 
-from query_table.enums import QueryType
+from mcp_query_table.enums import QueryType
 
 # 查询结果
 # 'https://np-pick-b.eastmoney.com/api/smart-tag/stock/v3/pw/search-code'

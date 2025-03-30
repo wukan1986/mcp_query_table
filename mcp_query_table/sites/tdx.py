@@ -9,7 +9,7 @@ import pandas as pd
 from loguru import logger
 from playwright.async_api import Page
 
-from query_table.enums import QueryType
+from mcp_query_table.enums import QueryType
 
 # 查询结果
 _PAGE1_ = 'https://wenda.tdx.com.cn/TQL?Entry=NLPSE.NLPQuery'

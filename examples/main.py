@@ -1,6 +1,6 @@
 import asyncio
 
-from query_table import *
+from mcp_query_table import *
 
 
 async def main() -> None:

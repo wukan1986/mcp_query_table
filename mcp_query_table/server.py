@@ -4,8 +4,8 @@ from loguru import logger
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
-from query_table import QueryType, Site, query as query_table_query
-from query_table.tool import BrowserManager
+from mcp_query_table import QueryType, Site, query as query_table_query
+from mcp_query_table.tool import BrowserManager
 
 
 class QueryServer:
@@ -26,7 +26,7 @@ class QueryServer:
             return df.to_json(force_ascii=False, indent=2)
 
 
-# !!!log_level这一句非常重要，否则stdio不工作
+# !!!log_level这一句非常重要，否则Cline/MCP Server/Tools工作不正常
 mcp = FastMCP("query_table_mcp", log_level="ERROR")
 qsv = QueryServer()
 

@@ -11,7 +11,7 @@ import pandas as pd
 from loguru import logger
 from playwright.async_api import Page
 
-from query_table.enums import QueryType
+from mcp_query_table.enums import QueryType
 
 # 初次查询页面
 _PAGE1_ = 'https://www.iwencai.com/customized/chart/get-robot-data'

@@ -15,9 +15,9 @@ import revolving_asyncio  # pip install revolving_asyncio
 # revolving_asyncio.apply()
 
 # %%
-from query_table import query, QueryType, Site, BrowserManager
+from mcp_query_table import query, QueryType, Site, BrowserManager
 
-bm = BrowserManager(port=9222, browser_path=None, debug=True)
+bm = BrowserManager(port=9222, browser_path=None, debug=False)
 query = revolving_asyncio.to_sync(query)
 get_page = revolving_asyncio.to_sync(bm.get_page)
 release_page = revolving_asyncio.to_sync(bm.release_page)

@@ -1,4 +1,4 @@
-from query_table.server import serve
+from mcp_query_table.server import serve
 
 
 def main():

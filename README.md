@@ -1,6 +1,6 @@
-# query_table
+# mcp_query_table
 
-基于`playwright`实现的网页表格爬虫，支持`Model Context Protocol (MCP) `。目前可查询来源为
+基于`playwright`实现的财经网页表格爬虫，支持`Model Context Protocol (MCP) `。目前可查询来源为
 
 - [同花顺i问财](http://iwencai.com/)
 - [通达信问小达](https://wenda.tdx.com.cn/)
@@ -11,8 +11,8 @@
 ## 安装
 
 ```commandline
-pip install -i https://pypi.org/simple --upgrade query_table
-pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade query_table
+pip install -i https://pypi.org/simple --upgrade mcp_query_table
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade mcp_query_table
 ```
 
 ## 使用
@@ -20,28 +20,25 @@ pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade query_table
 ```python
 import asyncio
 
-from query_table import *
+from mcp_query_table import *
 
 
 async def main() -> None:
-    # 启动浏览器，browser_path最好是Chrome的绝对路径
-    playwright, browser, context, page = await launch_browser(cdp_port=9222, browser_path=None)
-    print(browser.is_connected(), page.is_closed())
-
-    # 问财需要保证浏览器宽度>768，防止界面变成适应手机
-    df = await query(page, '收益最好的200只ETF', query_type=QueryType.ETF, max_page=1, site=Site.THS)
-    print(df.to_markdown())
-    df = await query(page, '年初至今收益率前50', query_type=QueryType.Fund, max_page=1, site=Site.TDX)
-    print(df.to_csv())
-    df = await query(page, '流通市值前10的行业板块', query_type=QueryType.Index, max_page=1, site=Site.TDX)
-    print(df.to_csv())
-    # TODO 东财翻页要提前登录
-    df = await query(page, '今日涨幅前5的概念板块;', query_type=QueryType.Board, max_page=3, site=Site.EastMoney)
-    print(df)
-
-    print('done')
-    await browser.close()
-    await playwright.stop()
+    async with BrowserManager(port=9222, browser_path=None, debug=True) as bm:
+        # 问财需要保证浏览器宽度>768，防止界面变成适应手机
+        page = await bm.get_page()
+        df = await query(page, '收益最好的200只ETF', query_type=QueryType.ETF, max_page=1, site=Site.THS)
+        print(df.to_markdown())
+        df = await query(page, '年初至今收益率前50', query_type=QueryType.Fund, max_page=1, site=Site.TDX)
+        print(df.to_csv())
+        df = await query(page, '流通市值前10的行业板块', query_type=QueryType.Index, max_page=1, site=Site.TDX)
+        print(df.to_csv())
+        # TODO 东财翻页要提前登录
+        df = await query(page, '今日涨幅前5的概念板块;', query_type=QueryType.Board, max_page=3, site=Site.EastMoney)
+        print(df)
+        bm.release_page(page)
+        print('done')
+        await page.wait_for_timeout(2000)
 
 
 if __name__ == '__main__':
@@ -81,7 +78,7 @@ if __name__ == '__main__':
 
 ## MCP支持
 
-确保可以在控制台中执行`python -m query_table -h`。如果不能，可能要先`pip install query_table`
+确保可以在控制台中执行`python -m mcp_query_table -h`。如果不能，可能要先`pip install mcp_query_table`
 
 在`Cline`中可以配置如下。其中`command`是`python`的绝对路径，`browser_path`是`Chrome`的绝对路径。
 
@@ -90,11 +87,11 @@ if __name__ == '__main__':
 ```json
 {
   "mcpServers": {
-    "query_table": {
+    "mcp_query_table": {
       "command": "D:\\Users\\Kan\\miniconda3\\envs\\py312\\python.exe",
       "args": [
         "-m",
-        "query_table",
+        "mcp_query_table",
         "--format",
         "markdown",
         "--browser_path",
@@ -110,7 +107,7 @@ if __name__ == '__main__':
 先在控制台中执行如下命令，启动`MCP`服务
 
 ```commandline
-python -m query_table --format markdown --browser_path "C:\Program Files\Google\Chrome\Application\chrome.exe" --transport sse --mcp_port 8000
+python -m mcp_query_table --format markdown --browser_path "C:\Program Files\Google\Chrome\Application\chrome.exe" --transport sse --mcp_port 8000
 ```
 
 然后就可以连接到`MCP`服务了
@@ -119,7 +116,7 @@ http://localhost:8000/sse
 ## 使用`MCP Inspector`进行调试
 
 ```commandline
-npx @modelcontextprotocol/inspector python -m query_table --format markdown
+npx @modelcontextprotocol/inspector python -m mcp_query_table --format markdown
 ```
 
 打开浏览器并翻页是一个比较耗时的操作，会导致`MCP Inspector`页面超时，可以`http://localhost:5173/?timeout=60000` 表示超时时间为60秒

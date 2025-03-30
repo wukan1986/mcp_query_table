@@ -7,7 +7,7 @@ import pandas as pd
 from loguru import logger
 from playwright.async_api import async_playwright, Playwright, Page
 
-from query_table.enums import QueryType, Site
+from mcp_query_table.enums import QueryType, Site
 
 
 class BrowserManager:
@@ -103,7 +103,7 @@ class BrowserManager:
             await self._launch()
 
     async def get_page(self) -> Page:
-        """获取可用Page"""
+        """获取可用Page。无空闲标签时会打开新标签"""
         await self._try_launch()
 
         # 反复取第一个tab
@@ -117,7 +117,7 @@ class BrowserManager:
         return await self.context.new_page()
 
     def release_page(self, page) -> None:
-        """用完的Page释放到池中"""
+        """用完的Page释放到池中。如果用完不放回，get_page会一直打开新标签"""
         if page.is_closed():
             return
         # 放回
@@ -153,13 +153,13 @@ async def query(
     """
 
     if site == Site.EastMoney:
-        from query_table.sites.eastmoney import query
+        from mcp_query_table.sites.eastmoney import query
         return await query(page, query_input, query_type, max_page)
     if site == Site.THS:
-        from query_table.sites.iwencai import query
+        from mcp_query_table.sites.iwencai import query
         return await query(page, query_input, query_type, max_page)
     if site == Site.TDX:
-        from query_table.sites.tdx import query
+        from mcp_query_table.sites.tdx import query
         return await query(page, query_input, query_type, max_page)
 
     raise ValueError(f"未支持的站点:{site}")
