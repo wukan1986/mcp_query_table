@@ -1,4 +1,5 @@
 import subprocess
+import sys
 import time
 from pathlib import Path
 from typing import Optional
@@ -8,6 +9,23 @@ from loguru import logger
 from playwright.async_api import async_playwright, Playwright, Page
 
 from mcp_query_table.enums import QueryType, Site
+
+
+def create_detached_process(command):
+    # 设置通用参数
+    kwargs = {}
+
+    if sys.platform == 'win32':
+        kwargs.update({
+            # 在PyCharm中运行还是会出现新建进程被关闭
+            'creationflags': subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+        })
+    else:
+        # Unix-like 系统（Linux, macOS）特定设置
+        kwargs.update({
+            'start_new_session': True  # 创建新的会话
+        })
+    return subprocess.Popen(command, **kwargs)
 
 
 class BrowserManager:
@@ -75,8 +93,7 @@ class BrowserManager:
             except:
                 if i == 0:
                     logger.info(f"start browser:{command}")
-                    subprocess.Popen(command,
-                                     creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
+                    create_detached_process(command)
                     time.sleep(3)
                 if i == 1:
                     logger.warning("是否提前打开了浏览器，但未开启远程调试端口？请关闭浏览器全部进程后重试")
