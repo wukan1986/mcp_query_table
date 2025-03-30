@@ -62,31 +62,25 @@ class BrowserManager:
         https://blog.csdn.net/qq_30576521/article/details/142370538
 
         """
+        endpoint = f"http://127.0.0.1:{self.port}"
+        command = [self.browser_path, f'--remote-debugging-port={self.port}', '--start-maximized']
+        if self.debug:
+            command.append('--auto-open-devtools-for-tabs')
+
         self.playwright = await async_playwright().start()
 
-        try:
-            # 尝试连接已打开的浏览器
-            self.browser = await self.playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{self.port}",
-                                                                           slow_mo=1000,
-                                                                           timeout=5000)
-        except:
-
-            # 执行完成后不会关闭浏览器
-            if self.debug:
-                command = f'"{self.browser_path}" --remote-debugging-port={self.port} --start-maximized --auto-open-devtools-for-tabs'
-            else:
-                command = f'"{self.browser_path}" --remote-debugging-port={self.port} --start-maximized'
-            logger.info(f"start browser:{command}")
-            subprocess.Popen(command, shell=True)
-            time.sleep(3)
-
+        for i in range(2):
             try:
-                self.browser = await self.playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{self.port}",
-                                                                               slow_mo=1000,
-                                                                               timeout=5000)
+                self.browser = await self.playwright.chromium.connect_over_cdp(endpoint, timeout=10000, slow_mo=1000)
             except:
-                logger.warning("是否提前打开了浏览器，但未开启远程调试端口？请关闭浏览器全部进程后重试")
-                raise
+                if i == 0:
+                    logger.info(f"start browser:{command}")
+                    subprocess.Popen(command,
+                                     creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
+                    time.sleep(3)
+                if i == 1:
+                    logger.warning("是否提前打开了浏览器，但未开启远程调试端口？请关闭浏览器全部进程后重试")
+                    raise
 
         self.context = self.browser.contexts[0]
         # 复用打开的page
