@@ -10,6 +10,11 @@ from playwright.async_api import async_playwright, Playwright, Page
 
 from mcp_query_table.enums import QueryType, Site
 
+browsers_path = {
+    "chrome.exe": r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+    "msedge.exe": r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+}
+
 
 def create_detached_process(command):
     # 设置通用参数
@@ -49,12 +54,12 @@ class BrowserManager:
 
         """
         if browser_path is None:
-            browser_path = r'C:\Program Files\Google\Chrome\Application\chrome.exe'
-            if not Path(browser_path).exists():
-                # Microsoft Edge必须在任务管理器中完全退出才能启动调试端口
-                browser_path = r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
-                if not Path(browser_path).exists():
-                    raise ValueError("未找到浏览器可执行文件")
+            for k, v in browsers_path.items():
+                if Path(v).exists():
+                    browser_path = v
+                    break
+            if browser_path is None:
+                raise ValueError("未找到浏览器可执行文件")
 
         self.port = port
         self.browser_path = browser_path
@@ -82,6 +87,7 @@ class BrowserManager:
         """
         endpoint = f"http://127.0.0.1:{self.port}"
         command = [self.browser_path, f'--remote-debugging-port={self.port}', '--start-maximized']
+        name = Path(self.browser_path).name
         if self.debug:
             command.append('--auto-open-devtools-for-tabs')
 
@@ -96,8 +102,8 @@ class BrowserManager:
                     create_detached_process(command)
                     time.sleep(3)
                 if i == 1:
-                    logger.warning("是否提前打开了浏览器，但未开启远程调试端口？请关闭浏览器全部进程后重试")
-                    raise
+                    raise ConnectionError(
+                        f"已提前打开了浏览器，但未开启远程调试端口？请关闭浏览器全部进程后重试 `taskkill /f /im {name}`")
 
         self.context = self.browser.contexts[0]
         # 复用打开的page
