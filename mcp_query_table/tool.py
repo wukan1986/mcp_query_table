@@ -96,11 +96,13 @@ class BrowserManager:
         for i in range(2):
             try:
                 self.browser = await self.playwright.chromium.connect_over_cdp(endpoint, timeout=10000, slow_mo=1000)
+                break
             except:
                 if i == 0:
                     logger.info(f"start browser:{command}")
                     create_detached_process(command)
                     time.sleep(3)
+                    continue
                 if i == 1:
                     raise ConnectionError(
                         f"已提前打开了浏览器，但未开启远程调试端口？请关闭浏览器全部进程后重试 `taskkill /f /im {name}`")
