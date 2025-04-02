@@ -29,6 +29,7 @@ dynamic = ["version"]
 packages = [
     "mcp_query_table",
     "mcp_query_table.sites",
+    "mcp_query_table.providers",
 ]
 
 [tool.setuptools.dynamic]

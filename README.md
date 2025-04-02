@@ -1,12 +1,19 @@
 # mcp_query_table
 
-基于`playwright`实现的财经网页表格爬虫，支持`Model Context Protocol (MCP) `。目前可查询来源为
+1. 基于`playwright`实现的财经网页表格爬虫，支持`Model Context Protocol (MCP) `。目前可查询来源为
 
-- [同花顺i问财](http://iwencai.com/)
-- [通达信问小达](https://wenda.tdx.com.cn/)
-- [东方财富条件选股](https://xuangu.eastmoney.com/)
+    - [同花顺i问财](http://iwencai.com/)
+    - [通达信问小达](https://wenda.tdx.com.cn/)
+    - [东方财富条件选股](https://xuangu.eastmoney.com/)
 
-实盘时，如果某网站宕机或改版，可以立即切换到其他网站。(注意：不同网站的表格结构不同，需要提前做适配)
+   实盘时，如果某网站宕机或改版，可以立即切换到其他网站。(注意：不同网站的表格结构不同，需要提前做适配)
+
+2. 基于`playwright`实现的大语言模型调用爬虫。目前可用来源为
+    - [纳米搜索](https://www.n.cn/)
+    - [腾讯元宝](https://yuanbao.tencent.com/)
+    - [百度AI搜索](https://chat.baidu.com/)
+
+   `RooCode`提供了`Human Reply`功能。但发现`纳米搜索`网页版复制时格式破坏，所以研发了此功能
 
 ## 安装
 
@@ -24,25 +31,31 @@ from mcp_query_table import *
 
 
 async def main() -> None:
-    async with BrowserManager(port=9222, browser_path=None, debug=True) as bm:
-        # 问财需要保证浏览器宽度>768，防止界面变成适应手机
-        page = await bm.get_page()
-        df = await query(page, '收益最好的200只ETF', query_type=QueryType.ETF, max_page=1, site=Site.THS)
-        print(df.to_markdown())
-        df = await query(page, '年初至今收益率前50', query_type=QueryType.Fund, max_page=1, site=Site.TDX)
-        print(df.to_csv())
-        df = await query(page, '流通市值前10的行业板块', query_type=QueryType.Index, max_page=1, site=Site.TDX)
-        print(df.to_csv())
-        # TODO 东财翻页要提前登录
-        df = await query(page, '今日涨幅前5的概念板块;', query_type=QueryType.Board, max_page=3, site=Site.EastMoney)
-        print(df)
-        bm.release_page(page)
-        print('done')
-        await page.wait_for_timeout(2000)
+   async with BrowserManager(port=9222, browser_path=None, debug=True) as bm:
+      # 问财需要保证浏览器宽度>768，防止界面变成适应手机
+      page = await bm.get_page()
+      df = await query(page, '收益最好的200只ETF', query_type=QueryType.ETF, max_page=1, site=Site.THS)
+      print(df.to_markdown())
+      df = await query(page, '年初至今收益率前50', query_type=QueryType.Fund, max_page=1, site=Site.TDX)
+      print(df.to_csv())
+      df = await query(page, '流通市值前10的行业板块', query_type=QueryType.Index, max_page=1, site=Site.TDX)
+      print(df.to_csv())
+      # TODO 东财翻页要提前登录
+      df = await query(page, '今日涨幅前5的概念板块;', query_type=QueryType.Board, max_page=3, site=Site.EastMoney)
+      print(df)
+
+      output = await chat(page, "1+2等于多少？", provider=Provider.YuanBao)
+      print(output)
+      output = await chat(page, "3+4等于多少？", provider=Provider.YuanBao, create=True)
+      print(output)
+
+      print('done')
+      bm.release_page(page)
+      await page.wait_for_timeout(2000)
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+   asyncio.run(main())
 
 ```
 
@@ -119,7 +132,7 @@ http://localhost:8000/sse
 npx @modelcontextprotocol/inspector python -m mcp_query_table --format markdown
 ```
 
-打开浏览器并翻页是一个比较耗时的操作，会导致`MCP Inspector`页面超时，可以`http://localhost:5173/?timeout=60000` 表示超时时间为60秒
+打开浏览器并翻页是一个比较耗时的操作，会导致`MCP Inspector`页面超时，可以`http://localhost:5173/?timeout=600000` 表示超时时间为600秒
 
 第一次尝试编写`MCP`项目，可能会有各种问题，欢迎大家交流。
 

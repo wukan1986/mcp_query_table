@@ -8,7 +8,7 @@ import pandas as pd
 from loguru import logger
 from playwright.async_api import async_playwright, Playwright, Page
 
-from mcp_query_table.enums import QueryType, Site
+from mcp_query_table.enums import QueryType, Site, Provider
 
 browsers_path = {
     "chrome.exe": r"C:\Program Files\Google\Chrome\Application\chrome.exe",
@@ -143,6 +143,19 @@ class BrowserManager:
         self.pages.append(page)
 
 
+class GlobalVars:
+    """全局变量"""
+
+    def __init__(self):
+        self.text = ""
+
+    def set_text(self, text):
+        self.text = text
+
+    def get_text(self):
+        return self.text
+
+
 async def query(
         page: Page,
         query_input: str = "收盘价>100元",
@@ -182,3 +195,21 @@ async def query(
         return await query(page, query_input, query_type, max_page)
 
     raise ValueError(f"未支持的站点:{site}")
+
+
+async def chat(
+        page: Page,
+        prompt: str = "9.9大还是9.11大？",
+        create: bool = False,
+        provider: Provider = Provider.N) -> str:
+    if provider == Provider.N:
+        from mcp_query_table.providers.n import chat
+        return await chat(page, prompt, create)
+    if provider == Provider.YuanBao:
+        from mcp_query_table.providers.yuanbao import chat
+        return await chat(page, prompt, create)
+    if provider == Provider.BaiDu:
+        from mcp_query_table.providers.baidu import chat
+        return await chat(page, prompt, create)
+
+    raise ValueError(f"未支持的提供商:{provider}")
