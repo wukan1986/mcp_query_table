@@ -5,11 +5,11 @@ import json
 
 from playwright.async_api import Page
 
+import mcp_query_table
 from mcp_query_table.tool import GlobalVars
 
 _PAGE0_ = "https://yuanbao.tencent.com/"
 _PAGE1_ = "https://yuanbao.tencent.com/api/chat"
-_TIMEOUT_ = 1000 * 120
 
 G = GlobalVars()
 
@@ -52,7 +52,7 @@ async def on_route(route):
     # print("on_route", route.request.url)
     if route.request.url.startswith(_PAGE1_):
         # TODO 这里会导致数据全部加载，逻辑变了，所以界面可能混乱
-        response = await route.fetch(timeout=_TIMEOUT_)
+        response = await route.fetch(timeout=mcp_query_table.TIMEOUT)
         await route.fulfill(
             # 强行加utf-8，否则编码搞不定
             content_type="text/event-stream; charset=utf-8",
@@ -73,7 +73,7 @@ async def chat(page: Page,
         await page.goto(_PAGE0_)
 
     await page.route(f"{_PAGE1_}/*", on_route)
-    async with page.expect_response(f"{_PAGE1_}/*", timeout=_TIMEOUT_) as response_info:
+    async with page.expect_response(f"{_PAGE1_}/*", timeout=mcp_query_table.TIMEOUT) as response_info:
         textbox = page.locator(".ql-editor")
         await textbox.fill(prompt)
         await textbox.press("Enter")

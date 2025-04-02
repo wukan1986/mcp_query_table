@@ -1,7 +1,10 @@
 import asyncio
 
+import mcp_query_table
 from mcp_query_table import *
 from mcp_query_table.enums import Provider
+
+mcp_query_table.TIMEOUT = 1000 * 60 * 3  # 3分钟超时
 
 
 async def main() -> None:

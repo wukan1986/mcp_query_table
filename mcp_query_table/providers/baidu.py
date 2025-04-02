@@ -7,11 +7,11 @@ import json
 
 from playwright.async_api import Page
 
+import mcp_query_table
 from mcp_query_table.tool import GlobalVars
 
 _PAGE0_ = "https://chat.baidu.com/search"
 _PAGE1_ = "https://chat.baidu.com/aichat/api/conversation"
-_TIMEOUT_ = 1000 * 120
 
 G = GlobalVars()
 
@@ -57,7 +57,7 @@ async def on_route(route):
     # print("on_route", route.request.url)
     if route.request.url.startswith(_PAGE1_):
         # TODO 为何只要转发一下就没事了？
-        response = await route.fetch(timeout=_TIMEOUT_)
+        response = await route.fetch(timeout=mcp_query_table.TIMEOUT)
         await route.fulfill(response=response)
     else:
         await route.continue_()
@@ -74,7 +74,7 @@ async def chat(page: Page,
         await page.goto(_PAGE0_)
 
     await page.route(_PAGE1_, on_route)
-    async with page.expect_response(_PAGE1_, timeout=_TIMEOUT_) as response_info:
+    async with page.expect_response(_PAGE1_, timeout=mcp_query_table.TIMEOUT) as response_info:
         await page.locator("#chat-input-box").fill(prompt)
         await page.locator("#chat-input-box").press("Enter")
     await on_response(await response_info.value)

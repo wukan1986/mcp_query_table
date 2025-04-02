@@ -5,12 +5,12 @@ import json
 
 from playwright.async_api import Page
 
+import mcp_query_table
 from mcp_query_table.tool import GlobalVars
 
 _PAGE0_ = "https://www.n.cn"
 _PAGE1_ = "https://www.n.cn/search"
 _PAGE2_ = "https://www.n.cn/api/common/chat/v2"
-_TIMEOUT_ = 1000 * 120
 
 G = GlobalVars()
 
@@ -68,7 +68,7 @@ async def chat(page: Page,
     else:
         name = "提出后续问题，Enter发送，Shift+Enter 换行"
 
-    async with page.expect_response(_PAGE2_, timeout=_TIMEOUT_) as response_info:
+    async with page.expect_response(_PAGE2_, timeout=mcp_query_table.TIMEOUT) as response_info:
         textbox = page.get_by_role("textbox", name=name)
         await textbox.fill(prompt)
         await textbox.press("Enter")

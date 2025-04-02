@@ -202,6 +202,25 @@ async def chat(
         prompt: str = "9.9大还是9.11大？",
         create: bool = False,
         provider: Provider = Provider.N) -> str:
+    """大语言对话
+
+    Parameters
+    ----------
+    page : playwright.sync_api.Page
+        页面
+    prompt : str, optional
+        对话内容, by default "9.9大还是9.11大？"
+    create : bool, optional
+        是否创建新对话, by default False
+    provider : Provider, optional
+        提供商, by default Provider.N
+
+    Returns
+    -------
+    str
+        对话结果
+
+    """
     if provider == Provider.N:
         from mcp_query_table.providers.n import chat
         return await chat(page, prompt, create)
