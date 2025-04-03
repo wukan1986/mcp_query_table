@@ -124,7 +124,15 @@ python -m mcp_query_table --format markdown --browser_path "C:\Program Files\Goo
 ```
 
 然后就可以连接到`MCP`服务了
-http://localhost:8000/sse
+```json
+{
+  "mcpServers": {
+    "mcp_query_table": {
+      "url": "http://127.0.0.1:8000/sse"
+    }
+  }
+}
+```
 
 ## 使用`MCP Inspector`进行调试
 
