@@ -10,19 +10,20 @@ def main():
 
     parser.add_argument("--format", type=str, help="输出格式",
                         default='markdown', choices=['markdown', 'csv', 'json'])
-    parser.add_argument("--cdp_port", type=int, help="浏览器远程调试端口",
-                        default=9222)
-    parser.add_argument("--browser_path", type=str, help="浏览器类型",
+    parser.add_argument("--cdp_endpoint", type=str, help="浏览器CDP调试地址",
+                        default="http://127.0.0.1:9222")
+    parser.add_argument("--executable_path", type=str, help="浏览器类型",
                         default=r'C:\Program Files\Google\Chrome\Application\chrome.exe')
 
     parser.add_argument("--transport", type=str, help="传输类型",
                         default='stdio', choices=['stdio', 'sse'])
-    parser.add_argument("--mcp_host", type=str, help="MCP服务端地址",
+    parser.add_argument("--host", type=str, help="MCP服务端绑定地址",
                         default='0.0.0.0')
-    parser.add_argument("--mcp_port", type=int, help="MCP服务端端口",
+    parser.add_argument("--port", type=int, help="MCP服务端绑定端口",
                         default='8000')
     args = parser.parse_args()
-    serve(args.format, args.cdp_port, args.browser_path, args.transport, args.mcp_host, args.mcp_port)
+    serve(args.format, args.cdp_endpoint, args.executable_path,
+          args.transport, args.host, args.port)
 
 
 if __name__ == "__main__":

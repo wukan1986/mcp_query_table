@@ -8,7 +8,7 @@ mcp_query_table.TIMEOUT = 1000 * 60 * 3  # 3分钟超时
 
 
 async def main() -> None:
-    async with BrowserManager(port=9222, browser_path=None, debug=False) as bm:
+    async with BrowserManager(cdp_endpoint="http://127.0.0.1:9222", executable_path=None, debug=False) as bm:
         page1 = await bm.get_page()
         page2 = await bm.get_page()
 
@@ -19,7 +19,7 @@ async def main() -> None:
         print(output)
         output = await chat(page1, "3*4等于多少？", provider=Provider.BaiDu)
         print(output)
-        output = await chat(page2, prompt, provider=Provider.N)
+        output = await chat(page2, prompt, provider=Provider.Nami)
         print(output)
         output = await chat(page2, prompt, provider=Provider.YuanBao)
         print(output)

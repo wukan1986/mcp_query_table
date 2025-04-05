@@ -10,9 +10,12 @@ from mcp_query_table.tool import BrowserManager
 
 
 class QueryServer:
-    def __init__(self, format: str = 'markdown', port: int = 9222, browser_path: Optional[str] = None) -> None:
+    def __init__(self,
+                 format: str = 'markdown',
+                 cdp_endpoint: Optional[str] = 'http://127.0.0.1:9222',
+                 executable_path: Optional[str] = None) -> None:
         self.format: str = format
-        self.browser = BrowserManager(port=port, browser_path=browser_path, debug=False)
+        self.browser = BrowserManager(cdp_endpoint=cdp_endpoint, executable_path=executable_path, debug=False)
 
     async def query(self, query_input: str, query_type: QueryType, max_page: int, site: Site):
         page = await self.browser.get_page()
@@ -54,19 +57,21 @@ async def query(
 async def chat(
         prompt: Annotated[str, Field(description="提示词。如：`9.9大还是9.11大？`")],
         create: Annotated[bool, Field(default=False, description="是否创建新对话")],
-        provider: Annotated[Provider, Field(default=Provider.N, description="提供商。支持`纳米搜索`、`腾讯元宝`")]
+        provider: Annotated[
+            Provider, Field(default=Provider.Nami, description="提供商。支持`纳米搜索`、`腾讯元宝`、`百度AI搜索`")]
 ) -> str:
     return await qsv.chat(prompt, create, provider)
 
 
-def serve(format, cdp_port, browser_path, transport, mcp_host, mcp_port):
+def serve(format, cdp_endpoint, executable_path, transport, host, port):
     qsv.format = format
-    qsv.port = cdp_port
-    qsv.browser_path = browser_path
-    logger.info("serve:{},{},{},{}", qsv.format, qsv.port, qsv.browser_path, transport)
+    qsv.cdp_endpoint = cdp_endpoint
+    qsv.executable_path = executable_path
+    logger.info(f"{format=},{transport=}")
+    logger.info(f"{cdp_endpoint=},{executable_path=}")
     if transport == 'sse':
-        logger.info("mcp:{},{}:{}", transport, mcp_host, mcp_port)
+        logger.info(f"{host=},{port=}", transport, host, port)
 
-    mcp.settings.host = mcp_host
-    mcp.settings.port = mcp_port
+    mcp.settings.host = host
+    mcp.settings.port = port
     mcp.run(transport=transport)

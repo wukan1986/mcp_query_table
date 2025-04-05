@@ -31,31 +31,31 @@ from mcp_query_table import *
 
 
 async def main() -> None:
-   async with BrowserManager(port=9222, browser_path=None, debug=True) as bm:
-      # 问财需要保证浏览器宽度>768，防止界面变成适应手机
-      page = await bm.get_page()
-      df = await query(page, '收益最好的200只ETF', query_type=QueryType.ETF, max_page=1, site=Site.THS)
-      print(df.to_markdown())
-      df = await query(page, '年初至今收益率前50', query_type=QueryType.Fund, max_page=1, site=Site.TDX)
-      print(df.to_csv())
-      df = await query(page, '流通市值前10的行业板块', query_type=QueryType.Index, max_page=1, site=Site.TDX)
-      print(df.to_csv())
-      # TODO 东财翻页要提前登录
-      df = await query(page, '今日涨幅前5的概念板块;', query_type=QueryType.Board, max_page=3, site=Site.EastMoney)
-      print(df)
+    async with BrowserManager(cdp_endpoint="http://127.0.0.1:9222", executable_path=None, debug=True) as bm:
+        # 问财需要保证浏览器宽度>768，防止界面变成适应手机
+        page = await bm.get_page()
+        df = await query(page, '收益最好的200只ETF', query_type=QueryType.ETF, max_page=1, site=Site.THS)
+        print(df.to_markdown())
+        df = await query(page, '年初至今收益率前50', query_type=QueryType.Fund, max_page=1, site=Site.TDX)
+        print(df.to_csv())
+        df = await query(page, '流通市值前10的行业板块', query_type=QueryType.Index, max_page=1, site=Site.TDX)
+        print(df.to_csv())
+        # TODO 东财翻页要提前登录
+        df = await query(page, '今日涨幅前5的概念板块;', query_type=QueryType.Board, max_page=3, site=Site.EastMoney)
+        print(df)
 
-      output = await chat(page, "1+2等于多少？", provider=Provider.YuanBao)
-      print(output)
-      output = await chat(page, "3+4等于多少？", provider=Provider.YuanBao, create=True)
-      print(output)
+        output = await chat(page, "1+2等于多少？", provider=Provider.YuanBao)
+        print(output)
+        output = await chat(page, "3+4等于多少？", provider=Provider.YuanBao, create=True)
+        print(output)
 
-      print('done')
-      bm.release_page(page)
-      await page.wait_for_timeout(2000)
+        print('done')
+        bm.release_page(page)
+        await page.wait_for_timeout(2000)
 
 
 if __name__ == '__main__':
-   asyncio.run(main())
+    asyncio.run(main())
 
 ```
 
@@ -93,7 +93,7 @@ if __name__ == '__main__':
 
 确保可以在控制台中执行`python -m mcp_query_table -h`。如果不能，可能要先`pip install mcp_query_table`
 
-在`Cline`中可以配置如下。其中`command`是`python`的绝对路径，`browser_path`是`Chrome`的绝对路径。
+在`Cline`中可以配置如下。其中`command`是`python`的绝对路径，`executable_path`是`Chrome`的绝对路径。
 
 ### STDIO方式
 
@@ -107,7 +107,9 @@ if __name__ == '__main__':
         "mcp_query_table",
         "--format",
         "markdown",
-        "--browser_path",
+        "--cdp_endpoint",
+        "http://127.0.0.1:9222",
+        "--executable_path",
         "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
       ]
     }
@@ -120,10 +122,11 @@ if __name__ == '__main__':
 先在控制台中执行如下命令，启动`MCP`服务
 
 ```commandline
-python -m mcp_query_table --format markdown --browser_path "C:\Program Files\Google\Chrome\Application\chrome.exe" --transport sse --mcp_port 8000
+python -m mcp_query_table --format markdown --transport sse --port 8000
 ```
 
 然后就可以连接到`MCP`服务了
+
 ```json
 {
   "mcpServers": {
@@ -140,7 +143,8 @@ python -m mcp_query_table --format markdown --browser_path "C:\Program Files\Goo
 npx @modelcontextprotocol/inspector python -m mcp_query_table --format markdown
 ```
 
-打开浏览器并翻页是一个比较耗时的操作，会导致`MCP Inspector`页面超时，可以`http://localhost:5173/?timeout=600000` 表示超时时间为600秒
+打开浏览器并翻页是一个比较耗时的操作，会导致`MCP Inspector`页面超时，可以`http://localhost:5173/?timeout=600000`
+表示超时时间为600秒
 
 第一次尝试编写`MCP`项目，可能会有各种问题，欢迎大家交流。
 

@@ -4,7 +4,7 @@ from mcp_query_table import *
 
 
 async def main() -> None:
-    async with BrowserManager(port=9222, browser_path=None, debug=True) as bm:
+    async with BrowserManager(cdp_endpoint=None, executable_path=None, debug=True) as bm:
         # 问财需要保证浏览器宽度>768，防止界面变成适应手机
         page = await bm.get_page()
         df = await query(page, '收益最好的200只ETF', query_type=QueryType.ETF, max_page=1, site=Site.THS)

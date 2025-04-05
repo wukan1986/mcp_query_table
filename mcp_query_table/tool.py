@@ -10,11 +10,6 @@ from playwright.async_api import async_playwright, Playwright, Page
 
 from mcp_query_table.enums import QueryType, Site, Provider
 
-browsers_path = {
-    "chrome.exe": r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-    "msedge.exe": r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
-}
-
 
 def create_detached_process(command):
     # 设置通用参数
@@ -33,6 +28,29 @@ def create_detached_process(command):
     return subprocess.Popen(command, **kwargs)
 
 
+def is_local_url(url: str) -> bool:
+    """判断url是否是本地地址"""
+    for local in ('localhost', '127.0.0.1'):
+        if local in url.lower():
+            return True
+    return False
+
+
+def get_executable_path(executable_path) -> Optional[str]:
+    """获取浏览器可执行文件路径"""
+    browsers = {
+        "default": executable_path,
+        "chrome.exe": r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        "msedge.exe": r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+    }
+    for k, v in browsers.items():
+        if v is None:
+            continue
+        if Path(v).exists():
+            return v
+    return None
+
+
 class BrowserManager:
     async def __aenter__(self):
         return self
@@ -40,29 +58,24 @@ class BrowserManager:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.cleanup()
 
-    def __init__(self, port: int = 9222, browser_path: Optional[str] = None, debug: bool = False):
+    def __init__(self,
+                 cdp_endpoint: Optional[str] = None,
+                 executable_path: Optional[str] = None,
+                 debug: bool = False):
         """
 
         Parameters
         ----------
-        port:int
-            浏览器调试端口
-        browser_path
-            浏览器可执行路径。推荐使用chrome，因为Microsoft Edge必须在任务管理器中完全退出才能启动调试端口
+        cdp_endpoint:str
+            浏览器CDP地址
+        executable_path:str
+            浏览器可执行文件路径。推荐使用chrome，因为Microsoft Edge必须在任务管理器中完全退出才能启动调试端口
         debug:bool
             是否显示开发者工具
 
         """
-        if browser_path is None:
-            for k, v in browsers_path.items():
-                if Path(v).exists():
-                    browser_path = v
-                    break
-            if browser_path is None:
-                raise ValueError("未找到浏览器可执行文件")
-
-        self.port = port
-        self.browser_path = browser_path
+        self.cdp_endpoint = cdp_endpoint or 'http://127.0.0.1:9222'
+        self.executable_path = executable_path
         self.debug = debug
 
         self.playwright: Optional[Playwright] = None
@@ -77,25 +90,18 @@ class BrowserManager:
         if self.playwright:
             await self.playwright.stop()
 
-    async def _launch(self) -> None:
-        """启动浏览器，并连接CDP协议
-
-        References
-        ----------
-        https://blog.csdn.net/qq_30576521/article/details/142370538
-
-        """
-        endpoint = f"http://127.0.0.1:{self.port}"
-        command = [self.browser_path, f'--remote-debugging-port={self.port}', '--start-maximized']
-        name = Path(self.browser_path).name
+    async def _connect_to_local(self) -> None:
+        """连接本地浏览器"""
+        port = self.cdp_endpoint.split(':')[-1]
+        executable_path = get_executable_path(self.executable_path)
+        command = [executable_path, f'--remote-debugging-port={port}', '--start-maximized']
         if self.debug:
             command.append('--auto-open-devtools-for-tabs')
 
-        self.playwright = await async_playwright().start()
-
         for i in range(2):
             try:
-                self.browser = await self.playwright.chromium.connect_over_cdp(endpoint, timeout=10000, slow_mo=1000)
+                self.browser = await self.playwright.chromium.connect_over_cdp(self.cdp_endpoint,
+                                                                               timeout=10000, slow_mo=1000)
                 break
             except:
                 if i == 0:
@@ -105,7 +111,30 @@ class BrowserManager:
                     continue
                 if i == 1:
                     raise ConnectionError(
-                        f"已提前打开了浏览器，但未开启远程调试端口？请关闭浏览器全部进程后重试 `taskkill /f /im {name}`")
+                        f"已提前打开了浏览器，但未开启远程调试端口？请关闭浏览器全部进程后重试 `taskkill /f /im {Path(executable_path).name}`")
+
+    async def _connect_to_remote(self) -> None:
+        """连接远程浏览器"""
+        try:
+            self.browser = await self.playwright.chromium.connect_over_cdp(self.cdp_endpoint,
+                                                                           timeout=10000, slow_mo=1000)
+        except:
+            raise ConnectionError(f"连接远程浏览器失败，请检查CDP地址和端口是否正确。{self.cdp_endpoint}")
+
+    async def _launch(self) -> None:
+        """启动浏览器，并连接CDP协议
+
+        References
+        ----------
+        https://blog.csdn.net/qq_30576521/article/details/142370538
+
+        """
+        self.playwright = await async_playwright().start()
+
+        if is_local_url(self.cdp_endpoint):
+            await self._connect_to_local()
+        else:
+            await self._connect_to_remote()
 
         self.context = self.browser.contexts[0]
         # 复用打开的page
@@ -201,7 +230,7 @@ async def chat(
         page: Page,
         prompt: str = "9.9大还是9.11大？",
         create: bool = False,
-        provider: Provider = Provider.N) -> str:
+        provider: Provider = Provider.Nami) -> str:
     """大语言对话
 
     Parameters
@@ -221,7 +250,7 @@ async def chat(
         对话结果
 
     """
-    if provider == Provider.N:
+    if provider == Provider.Nami:
         from mcp_query_table.providers.n import chat
         return await chat(page, prompt, create)
     if provider == Provider.YuanBao:
