@@ -23,6 +23,6 @@ class Site(Enum):
 
 class Provider(Enum):
     """提供商"""
-    N = '纳米搜索'  # 360 纳米搜索
+    Nami = '纳米搜索'  # 360 纳米搜索
     YuanBao = '腾讯元宝'  # 腾讯元宝
     BaiDu = '百度AI搜索'  # 百度AI搜索

@@ -55,7 +55,7 @@ async def on_response(response):
 async def on_route(route):
     # 避免出现 Protocol error (Network.getResponseBody): No data found for resource with given identifier
     # print("on_route", route.request.url)
-    if route.request.url.startswith(_PAGE1_):
+    if route.request.url == _PAGE1_:
         # TODO 为何只要转发一下就没事了？
         response = await route.fetch(timeout=mcp_query_table.TIMEOUT)
         await route.fulfill(response=response)
