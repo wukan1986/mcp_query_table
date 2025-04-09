@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated, Optional, List
 
 from loguru import logger
 from mcp.server.fastmcp import FastMCP
@@ -29,9 +29,9 @@ class QueryServer:
         if self.format == 'json':
             return df.to_json(force_ascii=False, indent=2)
 
-    async def chat(self, prompt: str, create: bool, provider: Provider):
+    async def chat(self, prompt: str, create: bool, files: List[str], provider: Provider):
         page = await self.browser.get_page()
-        txt = await qt_chat(page, prompt, create, provider)
+        txt = await qt_chat(page, prompt, create, files, provider)
         self.browser.release_page(page)
         return txt
 
@@ -57,10 +57,11 @@ async def query(
 async def chat(
         prompt: Annotated[str, Field(description="提示词。如：`9.9大还是9.11大？`")],
         create: Annotated[bool, Field(default=False, description="是否创建新对话")],
+        files: Annotated[List[str], Field(default=None, description="上传的文件列表。不同网站支持程度不同")],
         provider: Annotated[
             Provider, Field(default=Provider.Nami, description="提供商。支持`纳米搜索`、`腾讯元宝`、`百度AI搜索`")]
 ) -> str:
-    return await qsv.chat(prompt, create, provider)
+    return await qsv.chat(prompt, create, files, provider)
 
 
 def serve(format, cdp_endpoint, executable_path, transport, host, port):

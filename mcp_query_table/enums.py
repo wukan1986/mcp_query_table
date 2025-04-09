@@ -26,3 +26,4 @@ class Provider(Enum):
     Nami = '纳米搜索'  # 360 纳米搜索
     YuanBao = '腾讯元宝'  # 腾讯元宝
     BaiDu = '百度AI搜索'  # 百度AI搜索
+    # YiYan = '文心一言'  # 百度文心一言

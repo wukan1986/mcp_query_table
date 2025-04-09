@@ -6,11 +6,12 @@ import json
 from playwright.async_api import Page
 
 import mcp_query_table
-from mcp_query_table.tool import GlobalVars
+from mcp_query_table.tool import GlobalVars, is_image
 
 _PAGE0_ = "https://www.n.cn"
 _PAGE1_ = "https://www.n.cn/search"
-_PAGE2_ = "https://www.n.cn/api/common/chat/v2"
+_PAGE2_ = "https://www.n.cn/api/common/chat/v2"  # 对话
+_PAGE3_ = "https://www.n.cn/api/image/upload"  # 上传图片
 
 G = GlobalVars()
 
@@ -48,7 +49,7 @@ def read_event_stream(text):
 
 
 async def on_response(response):
-    if response == _PAGE2_:
+    if response.url == _PAGE2_:
         # print("on_response", response.url)
         text = await response.text()
         G.set_text(read_event_stream(text))
@@ -57,14 +58,43 @@ async def on_response(response):
 async def chat(page: Page,
                prompt: str,
                create: bool,
+               files: list[str],
                ) -> str:
+    """
+
+    Parameters
+    ----------
+    page : playwright.async_api.Page
+        页面
+    prompt : str
+        问题
+    create : bool
+        是否创建新的对话
+    files : list[str] | None
+        上传的文件列表。目前仅支持上传图片
+
+    Returns
+    -------
+    str
+        回答
+    """
     if not create:
         if not page.url.startswith(_PAGE1_):
             create = True
+        if len(files) > 0:
+            create = True
+
+    for file in files:
+        assert is_image(file), f"仅支持上传图片，{file}不是图片"
 
     if create:
-        await page.goto(_PAGE0_)
         name = "输入任何问题"
+
+        await page.goto(_PAGE0_)
+        if len(files) > 0:
+            # 只能在新会话中上传文件
+            async with page.expect_response(_PAGE3_, timeout=mcp_query_table.TIMEOUT) as response_info:
+                await page.locator("input[type=\"file\"]").set_input_files(files)
     else:
         name = "提出后续问题，Enter发送，Shift+Enter 换行"
 

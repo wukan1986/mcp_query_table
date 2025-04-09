@@ -5,6 +5,7 @@
 """
 import json
 
+from loguru import logger
 from playwright.async_api import Page
 
 import mcp_query_table
@@ -66,12 +67,17 @@ async def on_route(route):
 async def chat(page: Page,
                prompt: str,
                create: bool,
+               files: list[str],
                ) -> str:
     if not page.url.startswith(_PAGE0_):
         create = True
 
     if create:
         await page.goto(_PAGE0_)
+
+    if len(files) > 0:
+        # TODO
+        logger.warning("抱歉，百度AI搜索的上传文件功能未突破")
 
     await page.route(_PAGE1_, on_route)
     async with page.expect_response(_PAGE1_, timeout=mcp_query_table.TIMEOUT) as response_info:

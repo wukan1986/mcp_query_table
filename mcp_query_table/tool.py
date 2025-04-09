@@ -230,6 +230,7 @@ async def chat(
         page: Page,
         prompt: str = "9.9大还是9.11大？",
         create: bool = False,
+        files: list[str] | None = None,
         provider: Provider = Provider.Nami) -> str:
     """大语言对话
 
@@ -241,6 +242,8 @@ async def chat(
         对话内容, by default "9.9大还是9.11大？"
     create : bool, optional
         是否创建新对话, by default False
+    files : list[str] | None, optional
+        上传的文件列表。不同网站支持程度不同
     provider : Provider, optional
         提供商, by default Provider.N
 
@@ -250,14 +253,25 @@ async def chat(
         对话结果
 
     """
+    # 空列表转None
+    if files is None:
+        files = []
+
     if provider == Provider.Nami:
         from mcp_query_table.providers.n import chat
-        return await chat(page, prompt, create)
+        return await chat(page, prompt, create, files)
     if provider == Provider.YuanBao:
         from mcp_query_table.providers.yuanbao import chat
-        return await chat(page, prompt, create)
+        return await chat(page, prompt, create, files)
     if provider == Provider.BaiDu:
         from mcp_query_table.providers.baidu import chat
-        return await chat(page, prompt, create)
+        return await chat(page, prompt, create, files)
 
     raise ValueError(f"未支持的提供商:{provider}")
+
+
+def is_image(path: str) -> bool:
+    """判断是否是图片文件"""
+    img_ext = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
+    ext = Path(path).suffix.lower()
+    return ext in img_ext
