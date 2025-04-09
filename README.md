@@ -93,7 +93,8 @@ if __name__ == '__main__':
 
 确保可以在控制台中执行`python -m mcp_query_table -h`。如果不能，可能要先`pip install mcp_query_table`
 
-在`Cline`中可以配置如下。其中`command`是`python`的绝对路径，`executable_path`是`Chrome`的绝对路径。
+在`Cline`中可以配置如下。其中`command`是`python`的绝对路径，`executable_path`是`Chrome`的绝对路径，`timeout`是超时时间，单位为秒。
+在各`AI`平台中由于返回时间常需1分钟以上，所以需要设置大的超时时间。
 
 ### STDIO方式
 
@@ -101,6 +102,7 @@ if __name__ == '__main__':
 {
   "mcpServers": {
     "mcp_query_table": {
+      "timeout": 300,
       "command": "D:\\Users\\Kan\\miniconda3\\envs\\py312\\python.exe",
       "args": [
         "-m",
@@ -131,6 +133,7 @@ python -m mcp_query_table --format markdown --transport sse --port 8000
 {
   "mcpServers": {
     "mcp_query_table": {
+      "timeout": 300,
       "url": "http://127.0.0.1:8000/sse"
     }
   }
@@ -143,8 +146,8 @@ python -m mcp_query_table --format markdown --transport sse --port 8000
 npx @modelcontextprotocol/inspector python -m mcp_query_table --format markdown
 ```
 
-打开浏览器并翻页是一个比较耗时的操作，会导致`MCP Inspector`页面超时，可以`http://localhost:5173/?timeout=600000`
-表示超时时间为600秒
+打开浏览器并翻页是一个比较耗时的操作，会导致`MCP Inspector`页面超时，可以`http://localhost:5173/?timeout=300000`
+表示超时时间为300秒
 
 第一次尝试编写`MCP`项目，可能会有各种问题，欢迎大家交流。
 
