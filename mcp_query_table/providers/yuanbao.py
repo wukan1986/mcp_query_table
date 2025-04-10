@@ -7,7 +7,7 @@ import re
 from playwright.async_api import Page
 
 import mcp_query_table
-from mcp_query_table.tool import GlobalVars, is_image
+from mcp_query_table.tool import GlobalVars, split_images
 
 _PAGE0_ = "https://yuanbao.tencent.com/"
 _PAGE1_ = "https://yuanbao.tencent.com/api/chat"
@@ -76,20 +76,15 @@ async def chat(page: Page,
         await page.goto(_PAGE0_)
 
     if len(files) > 0:
-        is_img, is_doc = False, False
-        for f in files:
-            if is_image(f):
-                is_img = True
-            else:
-                is_doc = True
-        assert is_img ^ is_doc, "不能同时包含图片和文档"
+        imgs, docs = split_images(files)
+        assert len(imgs) == 0 or len(docs) == 0, "不能同时包含图片和文档"
 
         # 点击上传文件按钮，才会出现上传文件的input
         await page.get_by_role("button").filter(has_text=re.compile(r"^$")).last.click()
 
         # 上传文件
-        async with page.expect_response(_PAGE2_, timeout=mcp_query_table.TIMEOUT) as response_info:
-            if is_img:
+        async with page.expect_response(_PAGE2_, timeout=mcp_query_table.TIMEOUT_60) as response_info:
+            if len(imgs) > 0:
                 await page.locator("input[type=\"file\"]").nth(-2).set_input_files(files)
             else:
                 await page.locator("input[type=\"file\"]").last.set_input_files(files)

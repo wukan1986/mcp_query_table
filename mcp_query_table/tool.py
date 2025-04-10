@@ -2,7 +2,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Tuple
 
 import pandas as pd
 from loguru import logger
@@ -142,6 +142,12 @@ class BrowserManager:
             # 防止开发者工具被使用
             if page.url.startswith("devtools://"):
                 continue
+            # 防止chrome扩展被使用
+            if page.url.startswith("chrome-extension://"):
+                continue
+            # 防止edge扩展被使用
+            if page.url.startswith("extension://"):
+                continue
             self.pages.append(page)
 
     async def _try_launch(self) -> None:
@@ -275,3 +281,15 @@ def is_image(path: str) -> bool:
     img_ext = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
     ext = Path(path).suffix.lower()
     return ext in img_ext
+
+
+def split_images(files: List[str]) -> Tuple[List[str], List[str]]:
+    """图片列表分成两部分"""
+    imgs = []
+    docs = []
+    for f in files:
+        if is_image(f):
+            imgs.append(f)
+        else:
+            docs.append(f)
+    return imgs, docs

@@ -5,14 +5,14 @@
 """
 import json
 
-from loguru import logger
 from playwright.async_api import Page
 
 import mcp_query_table
-from mcp_query_table.tool import GlobalVars
+from mcp_query_table.tool import GlobalVars, split_images
 
 _PAGE0_ = "https://chat.baidu.com/search"
 _PAGE1_ = "https://chat.baidu.com/aichat/api/conversation"
+_PAGE2_ = "https://chat.baidu.com/aichat/api/file/upload"
 
 G = GlobalVars()
 
@@ -69,16 +69,30 @@ async def chat(page: Page,
                create: bool,
                files: list[str],
                ) -> str:
+    async def on_file_chooser(file_chooser):
+        # 文件选择对话框
+        await file_chooser.set_files(files)
+
     if not page.url.startswith(_PAGE0_):
         create = True
 
     if create:
         await page.goto(_PAGE0_)
 
+    # 文件上传
     if len(files) > 0:
-        # TODO
-        logger.warning("抱歉，百度AI搜索的上传文件功能未突破")
+        imgs, docs = split_images(files)
+        assert len(imgs) == 0 or len(docs) == 0, "不能同时包含图片和文档"
 
+        page.on("filechooser", on_file_chooser)
+        async with page.expect_response(f"{_PAGE2_}*", timeout=mcp_query_table.TIMEOUT_60) as response_info:
+            if len(imgs) > 0:
+                await page.locator(".cs-input-upload-icon").last.click()
+            else:
+                await page.locator(".cs-input-upload-icon").first.click()
+        page.remove_listener("filechooser", on_file_chooser)
+
+    # 提交问题
     await page.route(_PAGE1_, on_route)
     async with page.expect_response(_PAGE1_, timeout=mcp_query_table.TIMEOUT) as response_info:
         await page.locator("#chat-input-box").fill(prompt)

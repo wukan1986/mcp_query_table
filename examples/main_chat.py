@@ -30,6 +30,9 @@ async def main() -> None:
         print(output)
         output = await chat(page2, "描述下文件内容", files=files, provider=Provider.YuanBao)
         print(output)
+        output = await chat(page2, "描述下文件内容", files=files, provider=Provider.BaiDu)
+        print(output)
+
         bm.release_page(page1)
         bm.release_page(page2)
 

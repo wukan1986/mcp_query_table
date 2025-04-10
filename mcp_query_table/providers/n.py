@@ -93,7 +93,7 @@ async def chat(page: Page,
         await page.goto(_PAGE0_)
         if len(files) > 0:
             # 只能在新会话中上传文件
-            async with page.expect_response(_PAGE3_, timeout=mcp_query_table.TIMEOUT) as response_info:
+            async with page.expect_response(_PAGE3_, timeout=mcp_query_table.TIMEOUT_60) as response_info:
                 await page.locator("input[type=\"file\"]").set_input_files(files)
     else:
         name = "提出后续问题，Enter发送，Shift+Enter 换行"
