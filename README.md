@@ -166,6 +166,12 @@ npx @modelcontextprotocol/inspector python -m mcp_query_table --format markdown
     - 向东方财富板块查询 “去年涨的最差的行业板块”，再查询此板块中去年涨的最好的5只股票
       > 分成两步查询，先查询板块，再查询股票。但最好不要全自动，因为第一步的结果它不理解“今日涨幅”和“区间涨幅”,需要交互修正
 
+## 支持`Streamlit`
+
+实现在同一页面中查询金融数据，并手工输入到`AI`中进行深度分析。参考`streamlit`目录下的`README.md`文件。
+
+![streamlit](docs/img/streamlit.png)
+
 ## 参考
 
 - [Playwright](https://playwright.dev/python/docs/intro)
