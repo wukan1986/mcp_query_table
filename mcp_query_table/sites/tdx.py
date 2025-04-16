@@ -21,7 +21,7 @@ _queryType_ = {
     QueryType.Fund: 'JJ',
     QueryType.Index: 'ZS',
     QueryType.Info: 'ZX',
-    QueryType.Board: 'ZX',  # 板块也走指数
+    QueryType.Board: 'ZS',  # 板块也走指数
 }
 
 
