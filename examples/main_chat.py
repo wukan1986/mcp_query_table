@@ -8,7 +8,7 @@ mcp_query_table.TIMEOUT = 1000 * 60 * 3  # 3分钟超时
 
 
 async def main() -> None:
-    async with BrowserManager(cdp_endpoint="http://127.0.0.1:9222", executable_path=None, debug=False) as bm:
+    async with BrowserManager(endpoint="http://127.0.0.1:9222/", executable_path=None, debug=False) as bm:
         page1 = await bm.get_page()
         page2 = await bm.get_page()
 

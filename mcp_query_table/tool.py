@@ -3,6 +3,7 @@ import sys
 import time
 from pathlib import Path
 from typing import Optional, List, Tuple
+from urllib.parse import urlparse
 
 import pandas as pd
 from loguru import logger
@@ -36,6 +37,13 @@ def is_local_url(url: str) -> bool:
     return False
 
 
+def is_cdp_url(url: str) -> bool:
+    """判断url是否是CDP地址"""
+    if url.startswith('ws://') or url.startswith('wss://'):
+        return False
+    return True
+
+
 def get_executable_path(executable_path) -> Optional[str]:
     """获取浏览器可执行文件路径"""
     browsers = {
@@ -59,22 +67,22 @@ class BrowserManager:
         await self.cleanup()
 
     def __init__(self,
-                 cdp_endpoint: Optional[str] = None,
+                 endpoint: Optional[str] = None,
                  executable_path: Optional[str] = None,
                  debug: bool = False):
         """
 
         Parameters
         ----------
-        cdp_endpoint:str
-            浏览器CDP地址
+        endpoint:str
+            浏览器CDP地址/WS地址
         executable_path:str
             浏览器可执行文件路径。推荐使用chrome，因为Microsoft Edge必须在任务管理器中完全退出才能启动调试端口
         debug:bool
             是否显示开发者工具
 
         """
-        self.cdp_endpoint = cdp_endpoint or 'http://127.0.0.1:9222'
+        self.endpoint = endpoint or 'http://127.0.0.1:9222'
         self.executable_path = executable_path
         self.debug = debug
 
@@ -92,7 +100,7 @@ class BrowserManager:
 
     async def _connect_to_local(self) -> None:
         """连接本地浏览器"""
-        port = self.cdp_endpoint.split(':')[-1]
+        port = urlparse(self.endpoint).port
         executable_path = get_executable_path(self.executable_path)
         command = [executable_path, f'--remote-debugging-port={port}', '--start-maximized']
         if self.debug:
@@ -100,7 +108,7 @@ class BrowserManager:
 
         for i in range(2):
             try:
-                self.browser = await self.playwright.chromium.connect_over_cdp(self.cdp_endpoint,
+                self.browser = await self.playwright.chromium.connect_over_cdp(self.endpoint,
                                                                                timeout=10000, slow_mo=1000)
                 break
             except:
@@ -116,10 +124,14 @@ class BrowserManager:
     async def _connect_to_remote(self) -> None:
         """连接远程浏览器"""
         try:
-            self.browser = await self.playwright.chromium.connect_over_cdp(self.cdp_endpoint,
-                                                                           timeout=10000, slow_mo=1000)
+            if is_cdp_url(self.endpoint):
+                self.browser = await self.playwright.chromium.connect_over_cdp(self.endpoint,
+                                                                               timeout=10000, slow_mo=1000)
+            else:
+                self.browser = await self.playwright.chromium.connect(self.endpoint,
+                                                                      timeout=10000, slow_mo=1000)
         except:
-            raise ConnectionError(f"连接远程浏览器失败，请检查CDP地址和端口是否正确。{self.cdp_endpoint}")
+            raise ConnectionError(f"连接远程浏览器失败，请检查CDP/WS地址和端口是否正确。{self.endpoint}")
 
     async def _launch(self) -> None:
         """启动浏览器，并连接CDP协议
@@ -131,12 +143,15 @@ class BrowserManager:
         """
         self.playwright = await async_playwright().start()
 
-        if is_local_url(self.cdp_endpoint):
+        if is_local_url(self.endpoint) and is_cdp_url(self.endpoint):
             await self._connect_to_local()
         else:
             await self._connect_to_remote()
 
-        self.context = self.browser.contexts[0]
+        if len(self.browser.contexts) == 0:
+            self.context = await self.browser.new_context()
+        else:
+            self.context = self.browser.contexts[0]
         # 复用打开的page
         for page in self.context.pages:
             # 防止开发者工具被使用

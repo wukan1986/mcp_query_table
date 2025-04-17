@@ -140,6 +140,7 @@ json_data['answer']['components'][0]['data']['meta']['extra']['row_count']
 
 async def on_response(response):
     if response.url == _PAGE1_:
+        # TODO 不支持headless模式，需要以后解决
         P.update(*get_robot_data(await response.json()))
     if response.url == _PAGE2_:
         P.update(*getDataList(await response.json()))

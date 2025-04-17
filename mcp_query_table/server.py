@@ -1,4 +1,4 @@
-from typing import Annotated, Optional, List
+from typing import Annotated, List
 
 from loguru import logger
 from mcp.server.fastmcp import FastMCP
@@ -10,12 +10,13 @@ from mcp_query_table.tool import BrowserManager
 
 
 class QueryServer:
-    def __init__(self,
-                 format: str = 'markdown',
-                 cdp_endpoint: Optional[str] = 'http://127.0.0.1:9222',
-                 executable_path: Optional[str] = None) -> None:
+    def __init__(self) -> None:
+        self.format: str = "markdown"
+        self.browser = None
+
+    def start(self, format, endpoint, executable_path):
         self.format: str = format
-        self.browser = BrowserManager(cdp_endpoint=cdp_endpoint, executable_path=executable_path, debug=False)
+        self.browser = BrowserManager(endpoint=endpoint, executable_path=executable_path, debug=False)
 
     async def query(self, query_input: str, query_type: QueryType, max_page: int, site: Site):
         page = await self.browser.get_page()
@@ -64,12 +65,10 @@ async def chat(
     return await qsv.chat(prompt, create, files, provider)
 
 
-def serve(format, cdp_endpoint, executable_path, transport, host, port):
-    qsv.format = format
-    qsv.cdp_endpoint = cdp_endpoint
-    qsv.executable_path = executable_path
+def serve(format, endpoint, executable_path, transport, host, port):
+    qsv.start(format, endpoint, executable_path)
     logger.info(f"{format=},{transport=}")
-    logger.info(f"{cdp_endpoint=},{executable_path=}")
+    logger.info(f"{endpoint=},{executable_path=}")
     if transport == 'sse':
         logger.info(f"{host=},{port=}", transport, host, port)
 

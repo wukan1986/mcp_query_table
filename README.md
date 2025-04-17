@@ -31,7 +31,7 @@ from mcp_query_table import *
 
 
 async def main() -> None:
-    async with BrowserManager(cdp_endpoint="http://127.0.0.1:9222", executable_path=None, debug=True) as bm:
+    async with BrowserManager(endpoint="http://127.0.0.1:9222", executable_path=None, debug=True) as bm:
         # 问财需要保证浏览器宽度>768，防止界面变成适应手机
         page = await bm.get_page()
         df = await query(page, '收益最好的200只ETF', query_type=QueryType.ETF, max_page=1, site=Site.THS)
@@ -96,6 +96,13 @@ if __name__ == '__main__':
 在`Cline`中可以配置如下。其中`command`是`python`的绝对路径，`executable_path`是`Chrome`的绝对路径，`timeout`是超时时间，单位为秒。
 在各`AI`平台中由于返回时间常需1分钟以上，所以需要设置大的超时时间。
 
+`endpoint`支持两方式，一种是`cdp_endpoint`方式，一种是`ws_endpoint`方式。
+
+- cdp方式：通过启动时加参数`--remote-debugging-port=9222`来启动浏览器
+- ws方式：服务器上`docker run -p 3000:3000 --rm --init -it --workdir /home/pwuser --user pwuser mcr.microsoft.com/playwright:v1.51.0-noble /bin/sh -c "npx -y playwright@1.51.0 run-server --port 3000 --host 0.0.0.0"`
+
+参考：https://playwright.dev/python/docs/docker#remote-connection
+
 ### STDIO方式
 
 ```json
@@ -109,7 +116,7 @@ if __name__ == '__main__':
         "mcp_query_table",
         "--format",
         "markdown",
-        "--cdp_endpoint",
+        "--endpoint",
         "http://127.0.0.1:9222",
         "--executable_path",
         "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
