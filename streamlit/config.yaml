@@ -1,15 +1,15 @@
-max_page: 1 # 东财翻页要登录，设1免去了登录
+cookie:
+  expiry_days: 5
+  key: some_key
+  name: mcp_query_table
+credentials:
+  usernames:
+    admin:
+      password: "12345678"
+max_page: 1
 mcp_endpoint: http://localhost:8000/sse
 templates:
   涨幅前10: '你是一个专业的股票分析师。请忽略文件名，仅根据文件内容，为我提供专业分析报告。不用联网搜索。
 
 
     文件内容如下：'
-cookie:
-  expiry_days: 5
-  key: some_key
-  name: some_cookie_name
-credentials:
-  usernames:
-    admin:
-      password: "12345678"
