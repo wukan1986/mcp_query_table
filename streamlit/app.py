@@ -188,6 +188,9 @@ with st.sidebar:
     part3()
     part4()
 
+    if st.session_state['authentication_status']:
+        authenticator.logout()
+
 components.iframe(st.session_state.iframe_url, height=680)
 
 st.markdown("""
