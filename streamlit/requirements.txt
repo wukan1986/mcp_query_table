@@ -1,2 +1,4 @@
 mcp_query_table
 streamlit
+PyYAML
+tabulate

@@ -182,8 +182,5 @@ npx @modelcontextprotocol/inspector python -m mcp_query_table --format markdown 
 ![streamlit](docs/img/streamlit.png)
 
 ## 参考
-
-- [Playwright](https://playwright.dev/python/docs/intro)
 - [Selenium webdriver无法附加到edge实例，edge的--remote-debugging-port选项无效](https://blog.csdn.net/qq_30576521/article/details/142370538)
-  https://github.com/Mattwmaster58/playwright_stealth/
 - https://github.com/AtuboDad/playwright_stealth/issues/31
