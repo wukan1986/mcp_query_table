@@ -5,7 +5,9 @@ import sys
 
 import streamlit as st
 import streamlit.components.v1 as components
+import streamlit_authenticator as stauth
 import yaml
+from streamlit_authenticator import LoginError
 
 # 添加当前目录和上一层目录到系统路径
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -46,11 +48,34 @@ default_prompt = """你是一个专业的股票分析师。请忽略文件名，
 
 st.set_page_config(page_title='财经问答LLM', layout="wide", initial_sidebar_state="expanded")
 
-os.makedirs("static", exist_ok=True)
-
 # Loading config file
 with open('config.yaml', 'r', encoding='utf-8') as file:
     config = yaml.safe_load(file)
+
+# Pre-hashing all plain text passwords once
+stauth.Hasher.hash_passwords(config['credentials'])
+
+# Creating the authenticator object
+authenticator = stauth.Authenticate(
+    config['credentials'],
+    config['cookie']['name'],
+    config['cookie']['key'],
+    config['cookie']['expiry_days']
+)
+
+try:
+    authenticator.login()
+except LoginError as e:
+    st.error(e)
+
+if st.session_state['authentication_status'] is False:
+    st.error('Username/password is incorrect')
+elif st.session_state['authentication_status'] is None:
+    st.warning('Please enter your username and password')
+if not st.session_state['authentication_status']:
+    st.stop()
+
+os.makedirs("static", exist_ok=True)
 
 if "templates" not in st.session_state:
     st.session_state.templates = config["templates"] or {default_query: default_prompt}

@@ -5,3 +5,11 @@ templates:
 
 
     文件内容如下：'
+cookie:
+  expiry_days: 5
+  key: some_key
+  name: some_cookie_name
+credentials:
+  usernames:
+    admin:
+      password: "12345678"
