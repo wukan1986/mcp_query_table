@@ -1,0 +1,8 @@
+cookie:
+  expiry_days: 5
+  key: some_key
+  name: mcp_query_table
+credentials:
+  usernames:
+    admin:
+      password: "12345678"

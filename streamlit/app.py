@@ -48,8 +48,7 @@ default_prompt = """你是一个专业的股票分析师。请忽略文件名，
 
 st.set_page_config(page_title='财经问答LLM', layout="wide", initial_sidebar_state="expanded")
 
-# Loading config file
-with open('config.yaml', 'r', encoding='utf-8') as file:
+with open('auth.yaml', 'r', encoding='utf-8') as file:
     config = yaml.safe_load(file)
 
 # Pre-hashing all plain text passwords once
@@ -74,6 +73,10 @@ elif st.session_state['authentication_status'] is None:
     st.warning('Please enter your username and password')
 if not st.session_state['authentication_status']:
     st.stop()
+
+# Loading config file
+with open('config.yaml', 'r', encoding='utf-8') as file:
+    config = yaml.safe_load(file)
 
 os.makedirs("static", exist_ok=True)
 

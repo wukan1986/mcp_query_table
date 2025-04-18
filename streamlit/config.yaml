@@ -1,11 +1,3 @@
-cookie:
-  expiry_days: 5
-  key: some_key
-  name: mcp_query_table
-credentials:
-  usernames:
-    admin:
-      password: "12345678"
 max_page: 1
 mcp_endpoint: http://localhost:8000/sse
 templates:
