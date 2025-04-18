@@ -1,8 +1,9 @@
+import getpass
 import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Optional, List, Tuple
+from typing import Optional
 from urllib.parse import urlparse
 
 import pandas as pd
@@ -26,6 +27,7 @@ def create_detached_process(command):
         kwargs.update({
             'start_new_session': True  # 创建新的会话
         })
+    logger.info(f"Popen: {command}")
     return subprocess.Popen(command, **kwargs)
 
 
@@ -59,6 +61,21 @@ def get_executable_path(executable_path) -> Optional[str]:
     return None
 
 
+def get_user_data_dir(user_data_dir) -> Optional[str]:
+    """获取浏览器可用户目录"""
+    browsers = {
+        "default": user_data_dir,
+        "chrome.exe": rf'C:\Users\{getpass.getuser()}\AppData\Local\Google\Chrome\User Data',
+        "msedge.exe": rf"C:\Users\{getpass.getuser()}\AppData\Local\Microsoft\Edge\User Data",
+    }
+    for k, v in browsers.items():
+        if v is None:
+            continue
+        if Path(v).exists():
+            return v
+    return None
+
+
 class BrowserManager:
     async def __aenter__(self):
         return self
@@ -67,24 +84,36 @@ class BrowserManager:
         await self.cleanup()
 
     def __init__(self,
-                 endpoint: Optional[str] = None,
+                 endpoint: Optional[str],
                  executable_path: Optional[str] = None,
-                 debug: bool = False):
+                 devtools: bool = False,
+                 headless: bool = True,
+                 user_data_dir: Optional[str] = None):
         """
 
         Parameters
         ----------
-        endpoint:str
-            浏览器CDP地址/WS地址
+        endpoint:str or None
+            浏览器CDP地址/WS地址。
+            如果为None，则直接启动浏览器实例。可用无头模式。建议指定用户数据目录，否则可能无法使用某些需要登录的网站
         executable_path:str
             浏览器可执行文件路径。推荐使用chrome，因为Microsoft Edge必须在任务管理器中完全退出才能启动调试端口
-        debug:bool
+        devtools:bool
             是否显示开发者工具
+        headless:bool
+            是否无头模式启动浏览器
+        user_data_dir:str
+            浏览器用户数据目录。无头模式。强烈建议指定用户数据目录，否则可能无法使用某些需要登录的网站
 
         """
-        self.endpoint = endpoint or 'http://127.0.0.1:9222'
+        if devtools:
+            headless = False
+
+        self.endpoint = endpoint
         self.executable_path = executable_path
-        self.debug = debug
+        self.devtools = devtools
+        self.headless = headless
+        self.user_data_dir = user_data_dir
 
         self.playwright: Optional[Playwright] = None
         self.browser = None
@@ -102,8 +131,9 @@ class BrowserManager:
         """连接本地浏览器"""
         port = urlparse(self.endpoint).port
         executable_path = get_executable_path(self.executable_path)
+        name = Path(executable_path).name
         command = [executable_path, f'--remote-debugging-port={port}', '--start-maximized']
-        if self.debug:
+        if self.devtools:
             command.append('--auto-open-devtools-for-tabs')
 
         for i in range(2):
@@ -113,13 +143,12 @@ class BrowserManager:
                 break
             except:
                 if i == 0:
-                    logger.info(f"start browser:{command}")
                     create_detached_process(command)
                     time.sleep(3)
                     continue
                 if i == 1:
                     raise ConnectionError(
-                        f"已提前打开了浏览器，但未开启远程调试端口？请关闭浏览器全部进程后重试 `taskkill /f /im {Path(executable_path).name}`")
+                        f"已提前打开了浏览器，但未开启远程调试端口？请关闭浏览器全部进程后重试 `taskkill /f /im {name}`")
 
     async def _connect_to_remote(self) -> None:
         """连接远程浏览器"""
@@ -133,6 +162,25 @@ class BrowserManager:
         except:
             raise ConnectionError(f"连接远程浏览器失败，请检查CDP/WS地址和端口是否正确。{self.endpoint}")
 
+    async def _connect_to_launch(self) -> None:
+        logger.info("executable_path={}", self.executable_path)
+        if self.user_data_dir:
+            logger.info("user_data_dir={}", self.user_data_dir)
+            try:
+                self.context = await self.playwright.chromium.launch_persistent_context(
+                    user_data_dir=self.user_data_dir,
+                    executable_path=self.executable_path,
+                    headless=self.headless,
+                    devtools=self.devtools)
+            except:
+                raise ConnectionError(f"launch失败，可能已经有浏览器已经打开了数据目录。{self.user_data_dir}")
+        else:
+            logger.warning("未指定浏览器用户数据目录，部分需要的网站可能无法使用")
+            self.browser = await self.playwright.chromium.launch(
+                executable_path=self.executable_path,
+                headless=self.headless,
+                devtools=self.devtools)
+
     async def _launch(self) -> None:
         """启动浏览器，并连接CDP协议
 
@@ -142,16 +190,20 @@ class BrowserManager:
 
         """
         self.playwright = await async_playwright().start()
-
-        if is_local_url(self.endpoint) and is_cdp_url(self.endpoint):
+        if self.endpoint is None:
+            await self._connect_to_launch()
+        elif is_local_url(self.endpoint) and is_cdp_url(self.endpoint):
             await self._connect_to_local()
         else:
             await self._connect_to_remote()
 
-        if len(self.browser.contexts) == 0:
+        if self.browser is None:
+            pass
+        elif len(self.browser.contexts) == 0:
             self.context = await self.browser.new_context()
         else:
             self.context = self.browser.contexts[0]
+
         # 复用打开的page
         for page in self.context.pages:
             # 防止开发者工具被使用
@@ -165,15 +217,10 @@ class BrowserManager:
                 continue
             self.pages.append(page)
 
-    async def _try_launch(self) -> None:
-        if self.browser is None:
-            await self._launch()
-        if not self.browser.is_connected():
-            await self._launch()
-
     async def get_page(self) -> Page:
         """获取可用Page。无空闲标签时会打开新标签"""
-        await self._try_launch()
+        if self.context is None:
+            await self._launch()
 
         # 反复取第一个tab
         while len(self.pages) > 0:
@@ -191,19 +238,6 @@ class BrowserManager:
             return
         # 放回
         self.pages.append(page)
-
-
-class GlobalVars:
-    """全局变量"""
-
-    def __init__(self):
-        self.text = ""
-
-    def set_text(self, text):
-        self.text = text
-
-    def get_text(self):
-        return self.text
 
 
 async def query(
@@ -289,22 +323,3 @@ async def chat(
         return await chat(page, prompt, create, files)
 
     raise ValueError(f"未支持的提供商:{provider}")
-
-
-def is_image(path: str) -> bool:
-    """判断是否是图片文件"""
-    img_ext = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
-    ext = Path(path).suffix.lower()
-    return ext in img_ext
-
-
-def split_images(files: List[str]) -> Tuple[List[str], List[str]]:
-    """图片列表分成两部分"""
-    imgs = []
-    docs = []
-    for f in files:
-        if is_image(f):
-            imgs.append(f)
-        else:
-            docs.append(f)
-    return imgs, docs

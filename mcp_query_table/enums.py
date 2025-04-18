@@ -18,7 +18,7 @@ class Site(Enum):
     """站点"""
     EastMoney = '东方财富'  # 东方财富 条件选股
     TDX = '通达信'  # 通达信 问小达
-    THS = '同花顺'  # 同花顺 i问财
+    THS = '同花顺'  # 同花顺 问财
 
 
 class Provider(Enum):

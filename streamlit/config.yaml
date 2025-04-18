@@ -1,4 +1,4 @@
-max_page: 1
+max_page: 1 # 东财翻页要登录，设1免去了登录
 mcp_endpoint: http://localhost:8000/sse
 templates:
   涨幅前10: '你是一个专业的股票分析师。请忽略文件名，仅根据文件内容，为我提供专业分析报告。不用联网搜索。

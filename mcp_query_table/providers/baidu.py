@@ -8,7 +8,7 @@ import json
 from playwright.async_api import Page
 
 import mcp_query_table
-from mcp_query_table.tool import GlobalVars, split_images
+from mcp_query_table.utils import split_images, GlobalVars
 
 _PAGE0_ = "https://chat.baidu.com/search"
 _PAGE1_ = "https://chat.baidu.com/aichat/api/conversation"

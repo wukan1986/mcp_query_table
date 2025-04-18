@@ -3,10 +3,11 @@
 """
 import json
 
+from loguru import logger
 from playwright.async_api import Page
 
 import mcp_query_table
-from mcp_query_table.tool import GlobalVars, is_image
+from mcp_query_table.utils import is_image, GlobalVars
 
 _PAGE0_ = "https://www.n.cn"
 _PAGE1_ = "https://www.n.cn/search"
@@ -78,6 +79,8 @@ async def chat(page: Page,
     str
         回答
     """
+    logger.warning("纳米搜索。不登录可以使用。但无头模式要指定`user_data_dir`才能正常工作")
+
     if not create:
         if not page.url.startswith(_PAGE1_):
             create = True
@@ -102,6 +105,7 @@ async def chat(page: Page,
         textbox = page.get_by_role("textbox", name=name)
         await textbox.fill(prompt)
         await textbox.press("Enter")
+        # await page.screenshot(path="n.png")
     await on_response(await response_info.value)
 
     return G.get_text()

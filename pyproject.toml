@@ -20,6 +20,7 @@ dependencies = [
     "pandas",
     "loguru",
     "playwright",
+    "playwright-stealth",
     "mcp",
 ]
 dynamic = ["version"]

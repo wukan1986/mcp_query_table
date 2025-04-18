@@ -4,10 +4,11 @@
 import json
 import re
 
+from loguru import logger
 from playwright.async_api import Page
 
 import mcp_query_table
-from mcp_query_table.tool import GlobalVars, split_images
+from mcp_query_table.utils import split_images, GlobalVars
 
 _PAGE0_ = "https://yuanbao.tencent.com/"
 _PAGE1_ = "https://yuanbao.tencent.com/api/chat"
@@ -69,6 +70,8 @@ async def chat(page: Page,
                create: bool,
                files: list[str]
                ) -> str:
+    logger.info("腾讯元宝。登录才可以使用。无头模式时要指定`user_data_dir`才能正常工作")
+
     if not page.url.startswith(_PAGE0_):
         create = True
 

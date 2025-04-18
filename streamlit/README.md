@@ -14,9 +14,12 @@
    ```bash
    pip install -r requirements.txt
    ```
-3. 启动`MCP`服务`SSE`模式
+3. 启动`MCP`服务`SSE`模式，择其一即可
    ```bash
+   # 无头模式，速度更快。
    python -m mcp_query_table --format markdown --transport sse --port 8000
+   # 有头模式
+   python -m mcp_query_table --format markdown --transport sse --port 8000 --endpoint http://127.0.0.1:9222
    ```
 4. 启动`Streamlit`应用
    ```bash
@@ -36,3 +39,7 @@
 ## 参考
 
 https://github.com/zanetworker/mcp-sse-client-python
+
+## 注意
+
+1. 东方财富。翻页要登录，港股要登录

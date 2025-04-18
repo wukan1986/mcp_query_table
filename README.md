@@ -2,7 +2,7 @@
 
 1. 基于`playwright`实现的财经网页表格爬虫，支持`Model Context Protocol (MCP) `。目前可查询来源为
 
-    - [同花顺i问财](http://iwencai.com/)
+    - [同花顺问财](http://iwencai.com/)
     - [通达信问小达](https://wenda.tdx.com.cn/)
     - [东方财富条件选股](https://xuangu.eastmoney.com/)
 
@@ -31,7 +31,7 @@ from mcp_query_table import *
 
 
 async def main() -> None:
-    async with BrowserManager(endpoint="http://127.0.0.1:9222", executable_path=None, debug=True) as bm:
+    async with BrowserManager(endpoint="http://127.0.0.1:9222", executable_path=None, devtools=True) as bm:
         # 问财需要保证浏览器宽度>768，防止界面变成适应手机
         page = await bm.get_page()
         df = await query(page, '收益最好的200只ETF', query_type=QueryType.ETF, max_page=1, site=Site.THS)
@@ -89,19 +89,21 @@ if __name__ == '__main__':
 
 后期会根据不同的网站改版情况，使用更适合的方法。
 
+## 无头模式
+
+无头模式运行速度更快，但部分网站需要提前登录，所以，无头模式一定要指定`user_data_dir`，否则会出现需要登录的情况。
+
+- `endpoint=None`时，`headless=True`可无头启动新浏览器实例。指定`executable_path`和`user_data_dir`，才能确保无头模式下正常运行。
+- `endpoint`以`http://`开头，连接`CDP`模式启动的有头浏览器，参数必有`--remote-debugging-port`。`executable_path`为本地浏览器路径。
+- `endpoint`以`ws://`开头，连接远程`Playwright Server`。也是无头模式，但无法指定`user_data_dir`，所以使用受限
+    - 参考：https://playwright.dev/python/docs/docker#running-the-playwright-server
+
 ## MCP支持
 
 确保可以在控制台中执行`python -m mcp_query_table -h`。如果不能，可能要先`pip install mcp_query_table`
 
-在`Cline`中可以配置如下。其中`command`是`python`的绝对路径，`executable_path`是`Chrome`的绝对路径，`timeout`是超时时间，单位为秒。
-在各`AI`平台中由于返回时间常需1分钟以上，所以需要设置大的超时时间。
-
-`endpoint`支持两方式，一种是`cdp_endpoint`方式，一种是`ws_endpoint`方式。
-
-- cdp方式：通过启动时加参数`--remote-debugging-port=9222`来启动浏览器
-- ws方式：服务器上`docker run -p 3000:3000 --rm --init -it --workdir /home/pwuser --user pwuser mcr.microsoft.com/playwright:v1.51.0-noble /bin/sh -c "npx -y playwright@1.51.0 run-server --port 3000 --host 0.0.0.0"`
-
-参考：https://playwright.dev/python/docs/docker#remote-connection
+在`Cline`中可以配置如下。其中`command`是`python`的绝对路径，`timeout`是超时时间，单位为秒。 在各`AI`
+平台中由于返回时间常需1分钟以上，所以需要设置大的超时时间。
 
 ### STDIO方式
 
@@ -131,7 +133,7 @@ if __name__ == '__main__':
 先在控制台中执行如下命令，启动`MCP`服务
 
 ```commandline
-python -m mcp_query_table --format markdown --transport sse --port 8000
+python -m mcp_query_table --format markdown --transport sse --port 8000 --endpoint http://127.0.0.1:9222
 ```
 
 然后就可以连接到`MCP`服务了
@@ -150,7 +152,7 @@ python -m mcp_query_table --format markdown --transport sse --port 8000
 ## 使用`MCP Inspector`进行调试
 
 ```commandline
-npx @modelcontextprotocol/inspector python -m mcp_query_table --format markdown
+npx @modelcontextprotocol/inspector python -m mcp_query_table --format markdown --endpoint http://127.0.0.1:9222
 ```
 
 打开浏览器并翻页是一个比较耗时的操作，会导致`MCP Inspector`页面超时，可以`http://localhost:5173/?timeout=300000`
@@ -183,3 +185,5 @@ npx @modelcontextprotocol/inspector python -m mcp_query_table --format markdown
 
 - [Playwright](https://playwright.dev/python/docs/intro)
 - [Selenium webdriver无法附加到edge实例，edge的--remote-debugging-port选项无效](https://blog.csdn.net/qq_30576521/article/details/142370538)
+  https://github.com/Mattwmaster58/playwright_stealth/
+- https://github.com/AtuboDad/playwright_stealth/issues/31

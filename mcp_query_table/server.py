@@ -14,9 +14,13 @@ class QueryServer:
         self.format: str = "markdown"
         self.browser = None
 
-    def start(self, format, endpoint, executable_path):
+    def start(self, format, endpoint, executable_path, user_data_dir):
         self.format: str = format
-        self.browser = BrowserManager(endpoint=endpoint, executable_path=executable_path, debug=False)
+        self.browser = BrowserManager(endpoint=endpoint,
+                                      executable_path=executable_path,
+                                      user_data_dir=user_data_dir,
+                                      devtools=False,
+                                      headless=True)
 
     async def query(self, query_input: str, query_type: QueryType, max_page: int, site: Site):
         page = await self.browser.get_page()
@@ -65,12 +69,15 @@ async def chat(
     return await qsv.chat(prompt, create, files, provider)
 
 
-def serve(format, endpoint, executable_path, transport, host, port):
-    qsv.start(format, endpoint, executable_path)
-    logger.info(f"{format=},{transport=}")
-    logger.info(f"{endpoint=},{executable_path=}")
+def serve(format, endpoint, executable_path, user_data_dir, transport, host, port):
+    qsv.start(format, endpoint, executable_path, user_data_dir)
+    logger.info(f"{endpoint=}")
+    logger.info(f"{executable_path=}")
+    logger.info(f"{user_data_dir=}")
     if transport == 'sse':
-        logger.info(f"{host=},{port=}", transport, host, port)
+        logger.info(f"{transport=},{format=},{host=},{port=}")
+    else:
+        logger.info(f"{transport=},{format=}")
 
     mcp.settings.host = host
     mcp.settings.port = port

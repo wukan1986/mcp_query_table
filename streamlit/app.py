@@ -1,10 +1,15 @@
 import asyncio
 import hashlib
 import os
+import sys
 
 import streamlit as st
 import streamlit.components.v1 as components
 import yaml
+
+# 添加当前目录和上一层目录到系统路径
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from client import MCPClient
 from mcp_query_table import QueryType, Site
@@ -21,7 +26,7 @@ Provders = {
 }
 
 Sites = {
-    "https://xuangu.eastmoney.com": Site.EastMoney,
+    "https://xuangu.eastmoney.com": Site.EastMoney,  # 翻页要登录，港股要登录
     "https://www.iwencai.com": Site.THS,
     "https://wenda.tdx.com.cn": Site.TDX,
 }

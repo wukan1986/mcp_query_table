@@ -17,7 +17,7 @@ import revolving_asyncio  # pip install revolving_asyncio
 # %%
 from mcp_query_table import query, QueryType, Site, BrowserManager
 
-bm = BrowserManager(endpoint="http://127.0.0.1:9333", executable_path=r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe', debug=False)
+bm = BrowserManager(endpoint="http://127.0.0.1:9333", executable_path=r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe', devtools=False)
 query = revolving_asyncio.to_sync(query)
 get_page = revolving_asyncio.to_sync(bm.get_page)
 release_page = revolving_asyncio.to_sync(bm.release_page)
