@@ -17,7 +17,7 @@ def main():
     parser.add_argument("--executable_path", type=str, help="浏览器路径",
                         nargs="?", default=r'C:\Program Files\Google\Chrome\Application\chrome.exe')
     parser.add_argument("--user_data_dir", type=str, help="浏览器用户数据目录",
-                        nargs="?", default=rf'C:\Users\{getpass.getuser()}\AppData\Local\Google\Chrome\User Data')
+                        nargs="?", default=rf'C:\Users\{getpass.getuser()}\AppData\Local\Google\Chrome\User Data\Default')
     parser.add_argument("--transport", type=str, help="传输类型",
                         default='stdio', choices=['stdio', 'sse'])
     parser.add_argument("--host", type=str, help="MCP服务端绑定地址",
