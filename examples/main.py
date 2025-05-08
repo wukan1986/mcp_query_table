@@ -7,7 +7,7 @@ from mcp_query_table import *
 async def main() -> None:
     endpoint = "http://127.0.0.1:9222"
     executable_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-    user_data_dir = rf'C:\Users\{getpass.getuser()}\AppData\Local\Google\Chrome\User Data'
+    user_data_dir = rf'C:\Users\{getpass.getuser()}\AppData\Local\Google\Chrome\User Data\Default'
     # 以下使用的无头模式，速度快。建议先登录好网站账号再使用无头模式
     async with BrowserManager(endpoint=None,
                               executable_path=executable_path,

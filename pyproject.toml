@@ -1,7 +1,3 @@
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "mcp_query_table"
 authors = [
@@ -22,16 +18,21 @@ dependencies = [
     "playwright",
     "playwright-stealth",
     "mcp",
+    "setuptools", # playwright-stealth中要使用pkg_resources，而pkg_resources在setuptools中
+    "tabulate"
 ]
 dynamic = ["version"]
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.setuptools]
-packages = [
-    "mcp_query_table",
-    "mcp_query_table.sites",
-    "mcp_query_table.providers",
-]
+[tool.hatch.version]
+path = "mcp_query_table/_version.py"
 
-[tool.setuptools.dynamic]
-version = { attr = "mcp_query_table._version.__version__" }
+[tool.hatch.build.targets.wheel]
+packages = ["mcp_query_table"]
+include-package-data = true
+
+[tool.hatch.build.targets.sdist]
+include = ["mcp_query_table*"]

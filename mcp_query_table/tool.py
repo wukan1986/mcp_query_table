@@ -65,8 +65,8 @@ def get_user_data_dir(user_data_dir) -> Optional[str]:
     """获取浏览器可用户目录"""
     browsers = {
         "default": user_data_dir,
-        "chrome.exe": rf'C:\Users\{getpass.getuser()}\AppData\Local\Google\Chrome\User Data',
-        "msedge.exe": rf"C:\Users\{getpass.getuser()}\AppData\Local\Microsoft\Edge\User Data",
+        "chrome.exe": rf'C:\Users\{getpass.getuser()}\AppData\Local\Google\Chrome\User Data\Default',
+        "msedge.exe": rf"C:\Users\{getpass.getuser()}\AppData\Local\Microsoft\Edge\User Data\Default",
     }
     for k, v in browsers.items():
         if v is None:
@@ -144,7 +144,7 @@ class BrowserManager:
             except:
                 if i == 0:
                     create_detached_process(command)
-                    time.sleep(3)
+                    time.sleep(5)
                     continue
                 if i == 1:
                     raise ConnectionError(
@@ -171,7 +171,8 @@ class BrowserManager:
                     user_data_dir=self.user_data_dir,
                     executable_path=self.executable_path,
                     headless=self.headless,
-                    devtools=self.devtools)
+                    devtools=self.devtools,
+                    timeout=10000, slow_mo=1000)
             except:
                 raise ConnectionError(f"launch失败，可能已经有浏览器已经打开了数据目录。{self.user_data_dir}")
         else:

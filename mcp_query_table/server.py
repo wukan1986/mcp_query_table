@@ -58,7 +58,8 @@ async def query(
     return await qsv.query(query_input, query_type, max_page, site)
 
 
-@mcp.tool(description="大语言模型对话")
+# chat功能不通过mcp暴露，因为在Cline等客户端中本就有LLM功能，反而导致返回的数据没有正确提交
+# @mcp.tool(description="大语言模型对话")
 async def chat(
         prompt: Annotated[str, Field(description="提示词。如：`9.9大还是9.11大？`")],
         create: Annotated[bool, Field(default=False, description="是否创建新对话")],

@@ -8,7 +8,7 @@ from mcp_query_table.enums import Provider
 async def main() -> None:
     endpoint = "http://127.0.0.1:9222"
     executable_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-    user_data_dir = rf'C:\Users\{getpass.getuser()}\AppData\Local\Google\Chrome\User Data'
+    user_data_dir = rf'C:\Users\{getpass.getuser()}\AppData\Local\Google\Chrome\User Data\Default'
     async with BrowserManager(endpoint=None,
                               executable_path=executable_path,
                               devtools=False,
