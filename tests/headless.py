@@ -1,18 +1,37 @@
-from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth_sync
+import asyncio
+import random
+import string
 
-with sync_playwright() as p:
-    # 启动有头浏览器
-    browser = p.chromium.launch(headless=False)
-    page = browser.new_page(
-        user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36')
-    stealth_sync(page)
-    w = '收益最好的200只ETF'
-    querytype = 'fund'
-    url = f"https://www.iwencai.com/unifiedwap/result?w={w}&querytype={querytype}"
-    print(url)
-    page.goto(url)
-    page.wait_for_timeout(1000 * 15)
-    page.screenshot(path="example.png")
-    page.wait_for_timeout(1000 * 15000)
-    # browser.close()
+from playwright.async_api import async_playwright
+from playwright_stealth import stealth_async, StealthConfig
+
+
+async def main():
+    # This is the recommended usage. All pages created will have stealth applied:
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=False)
+        page = await browser.new_page()
+
+        class FixedConfig(StealthConfig):
+            @property
+            def enabled_scripts(self):
+                key = "".join(random.choices(string.ascii_letters, k=10))
+                for script in super().enabled_scripts:
+                    if "const opts" in script:
+                        yield script.replace("const opts", f"window.{key}")
+                        continue
+                    yield script.replace("opts", f"window.{key}")
+
+        await stealth_async(page, FixedConfig())
+
+        w = '收益最好的200只ETF'
+        querytype = 'fund'
+        url = f"https://www.n.cn"
+        print(url)
+        await page.goto(url)
+        await page.wait_for_timeout(1000 * 15)
+        await page.screenshot(path="example.png")
+        await page.wait_for_timeout(1000 * 15000)
+
+
+asyncio.run(main())

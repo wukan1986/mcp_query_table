@@ -40,7 +40,7 @@ async def on_flash(response):
 async def main() -> None:
     # taskkill /f /im msedge.exe
     async with BrowserManager(port=9222, browser_path=r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
-                              debug=False) as bm:
+                              devtools=False) as bm:
         page = await bm.get_page()
         await page.expose_function("__hook", __hook)
         await page.route("**/static/js/main.*.js", on_route)

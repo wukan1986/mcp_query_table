@@ -51,3 +51,9 @@ nohup streamlit run app.py --server.enableStaticServing=true --theme.codeFont="S
 ## 参考
 
 https://github.com/zanetworker/mcp-sse-client-python
+
+## .streamlit/config.toml
+可以简化成
+```bash
+nohup streamlit run app.py > streamlit.log 2>&1 &
+```

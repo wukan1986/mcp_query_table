@@ -1,0 +1,6 @@
+[server]
+enableStaticServing = true
+port = 51016
+
+[theme]
+codeFont = "SimSun, monospace"

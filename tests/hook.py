@@ -51,7 +51,7 @@ export{""")
 
 
 async def main() -> None:
-    async with BrowserManager(port=9222, browser_path=None, debug=True) as bm:
+    async with BrowserManager(port=9222, browser_path=None, devtools=True) as bm:
         page = await bm.get_page()
         await page.expose_function("__hook", __hook)
         await page.route("**/_nuxt3/*.js", on_route)
