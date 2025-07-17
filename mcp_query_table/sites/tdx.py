@@ -78,7 +78,7 @@ class Pagination:
             datas.extend(v)
         return datas
 
-    def get_dataframe(self):
+    def get_dataframe(self, rename: bool):
         dtypes = [convert_type(x) for x in self.dtypes]
         df = pd.DataFrame(self.get_list(), columns=self.columns)
         for i, v in enumerate(dtypes):
@@ -128,7 +128,8 @@ async def on_response2(response):
 async def query(page: Page,
                 message: str = "收盘价>100元",
                 type_: QueryType = 'AG',
-                max_page: int = 5) -> pd.DataFrame:
+                max_page: int = 5,
+                rename: bool = False) -> pd.DataFrame:
     queryType = _queryType_.get(type_, None)
     assert queryType is not None, f"不支持的类型:{type_}"
 
@@ -147,4 +148,4 @@ async def query(page: Page,
             await page.get_by_role("button", name="下一页").click()
         await on_response1(await response_info.value)
 
-    return P.get_dataframe()
+    return P.get_dataframe(rename)

@@ -53,9 +53,10 @@ async def query(
         query_type: Annotated[QueryType, Field(default=QueryType.CNStock,
                                                description="查询类型。支持`A股`、`指数`、`基金`、`港股`、`美股`等")],
         max_page: Annotated[int, Field(default=1, ge=1, le=10, description="最大页数。只查第一页即可")],
+        rename: Annotated[bool, Field(default=False, description="是否重命名列名")],
         site: Annotated[Site, Field(default=Site.THS, description="站点。支持`东方财富`、`通达信`、`同花顺`")]
 ) -> str:
-    return await qsv.query(query_input, query_type, max_page, site)
+    return await qsv.query(query_input, query_type, max_page, rename, site)
 
 
 # chat功能不通过mcp暴露，因为在Cline等客户端中本就有LLM功能，反而导致返回的数据没有正确提交

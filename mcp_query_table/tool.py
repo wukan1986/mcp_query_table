@@ -249,7 +249,9 @@ async def query(
         query_input: str = "收盘价>100元",
         query_type: QueryType = QueryType.CNStock,
         max_page: int = 5,
-        site: Site = Site.THS) -> pd.DataFrame:
+        rename: bool = False,
+        site: Site = Site.THS,
+        ) -> pd.DataFrame:
     """查询表格
 
     Parameters
@@ -262,6 +264,8 @@ async def query(
         查询类型, by default QueryType.astock
     max_page : int, optional
         最大页数, by default 5
+    rename: bool
+        是否重命名列名, by default False
     site : Site, optional
         站点, by default Site.iwencai
 
@@ -275,13 +279,13 @@ async def query(
 
     if site == Site.EastMoney:
         from mcp_query_table.sites.eastmoney import query
-        return await query(page, query_input, query_type, max_page)
+        return await query(page, query_input, query_type, max_page, rename)
     if site == Site.THS:
         from mcp_query_table.sites.iwencai import query
-        return await query(page, query_input, query_type, max_page)
+        return await query(page, query_input, query_type, max_page, rename)
     if site == Site.TDX:
         from mcp_query_table.sites.tdx import query
-        return await query(page, query_input, query_type, max_page)
+        return await query(page, query_input, query_type, max_page, rename)
 
     raise ValueError(f"未支持的站点:{site}")
 

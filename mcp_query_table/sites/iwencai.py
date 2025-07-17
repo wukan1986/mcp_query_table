@@ -80,7 +80,7 @@ class Pagination:
             datas.extend(v)
         return datas
 
-    def get_dataframe(self):
+    def get_dataframe(self, rename: bool):
         columns = {x['key']: x['index_name'] for x in self.columns}
         dtypes = {x['key']: convert_type(x['type']) for x in self.columns}
 
@@ -94,7 +94,10 @@ class Pagination:
             except ValueError:
                 logger.info("转换失败 {}:{}", k, v)
 
-        return df.rename(columns=columns)
+        if rename:
+            return df.rename(columns=columns)
+        else:
+            return df
 
 
 P = Pagination()
@@ -148,7 +151,8 @@ async def on_response(response):
 async def query(page: Page,
                 w: str = "收盘价>1000元",
                 type_: QueryType = 'stock',
-                max_page: int = 5) -> pd.DataFrame:
+                max_page: int = 5,
+                rename: bool = False) -> pd.DataFrame:
     querytype = _querytype_.get(type_, None)
     assert querytype is not None, f"不支持的类型:{type_}"
 
@@ -168,4 +172,4 @@ async def query(page: Page,
             await page.get_by_text("下页").click()
         await on_response(await response_info.value)
 
-    return P.get_dataframe()
+    return P.get_dataframe(rename)
