@@ -4,7 +4,7 @@ import sys
 import time
 from pathlib import Path
 from typing import Optional
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
 
 import pandas as pd
 from loguru import logger
@@ -268,6 +268,7 @@ async def query(
         查询结果
 
     """
+    query_input = quote(query_input.strip(), safe='')
 
     if site == Site.EastMoney:
         from mcp_query_table.sites.eastmoney import query
