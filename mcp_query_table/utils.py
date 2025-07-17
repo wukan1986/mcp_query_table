@@ -1,9 +1,5 @@
-import random
-import string
 from pathlib import Path
 from typing import List, Tuple
-
-from playwright_stealth import StealthConfig
 
 
 def is_image(path: str) -> bool:
@@ -36,16 +32,3 @@ class GlobalVars:
 
     def get_text(self):
         return self.text
-
-
-# https://github.com/AtuboDad/playwright_stealth/issues/31#issuecomment-2342541305
-class FixedConfig(StealthConfig):
-
-    @property
-    def enabled_scripts(self):
-        key = "".join(random.choices(string.ascii_letters, k=10))
-        for script in super().enabled_scripts:
-            if "const opts" in script:
-                yield script.replace("const opts", f"window.{key}")
-                continue
-            yield script.replace("opts", f"window.{key}")

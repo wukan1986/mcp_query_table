@@ -16,9 +16,8 @@ dependencies = [
     "pandas",
     "loguru",
     "playwright",
-    "playwright-stealth",
+    "playwright-stealth>=2.0.0", # https://github.com/Mattwmaster58/playwright_stealth
     "mcp",
-    "setuptools", # playwright-stealth中要使用pkg_resources，而pkg_resources在setuptools中
     "tabulate"
 ]
 dynamic = ["version"]

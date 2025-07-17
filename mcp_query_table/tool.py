@@ -9,6 +9,7 @@ from urllib.parse import urlparse, quote
 import pandas as pd
 from loguru import logger
 from playwright.async_api import async_playwright, Playwright, Page
+from playwright_stealth import Stealth
 
 from mcp_query_table.enums import QueryType, Site, Provider
 
@@ -204,6 +205,8 @@ class BrowserManager:
             self.context = await self.browser.new_context()
         else:
             self.context = self.browser.contexts[0]
+        # 爱问财，无头模式，需要使用 stealth 插件
+        await Stealth().apply_stealth_async(self.context)
 
         # 复用打开的page
         for page in self.context.pages:

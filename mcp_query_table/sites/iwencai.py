@@ -10,10 +10,8 @@ import re
 import pandas as pd
 from loguru import logger
 from playwright.async_api import Page
-from playwright_stealth import stealth_async
 
 from mcp_query_table.enums import QueryType
-from mcp_query_table.utils import FixedConfig
 
 # 初次查询页面
 _PAGE1_ = 'https://www.iwencai.com/customized/chart/get-robot-data'
@@ -153,8 +151,6 @@ async def query(page: Page,
                 max_page: int = 5) -> pd.DataFrame:
     querytype = _querytype_.get(type_, None)
     assert querytype is not None, f"不支持的类型:{type_}"
-
-    await stealth_async(page, FixedConfig())
 
     await page.route(re.compile(r'.*\.(?:jpg|jpeg|png|gif|webp)(?:$|\?)'), lambda route: route.abort())
 
