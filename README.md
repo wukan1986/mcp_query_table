@@ -98,6 +98,8 @@ if __name__ == '__main__':
 - `endpoint`以`ws://`开头，连接远程`Playwright Server`。也是无头模式，但无法指定`user_data_dir`，所以使用受限
     - 参考：https://playwright.dev/python/docs/docker#running-the-playwright-server
 
+`Chrome`新版的安全策略使用默认`user_data_dir`时将无法创建`CDP`服务，建议重新复制配置目录到其他地方
+
 ## MCP支持
 
 确保可以在控制台中执行`python -m mcp_query_table -h`。如果不能，可能要先`pip install mcp_query_table`
@@ -133,7 +135,7 @@ if __name__ == '__main__':
 先在控制台中执行如下命令，启动`MCP`服务
 
 ```commandline
-python -m mcp_query_table --format markdown --transport sse --port 8000 --endpoint http://127.0.0.1:9222
+python -m mcp_query_table --format markdown --transport sse --port 8000 --endpoint http://127.0.0.1:9222  --user_data_dir "D:\user-data-dir"
 ```
 
 然后就可以连接到`MCP`服务了
@@ -148,6 +150,14 @@ python -m mcp_query_table --format markdown --transport sse --port 8000 --endpoi
   }
 }
 ```
+
+### Streamable HTTP方式
+
+```commandline
+python -m mcp_query_table --format markdown --transport streamable-http --port 8000 --endpoint http://127.0.0.1:9222  --user_data_dir "D:\user-data-dir"
+```
+
+连接的地址是`http://127.0.0.1:8000/mcp`
 
 ## 使用`MCP Inspector`进行调试
 
@@ -182,5 +192,7 @@ npx @modelcontextprotocol/inspector python -m mcp_query_table --format markdown 
 ![streamlit](docs/img/streamlit.png)
 
 ## 参考
+
 - [Selenium webdriver无法附加到edge实例，edge的--remote-debugging-port选项无效](https://blog.csdn.net/qq_30576521/article/details/142370538)
 - https://github.com/AtuboDad/playwright_stealth/issues/31
+- https://github.com/browser-use/browser-use/issues/1520

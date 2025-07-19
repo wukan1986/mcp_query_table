@@ -66,8 +66,8 @@ def get_user_data_dir(user_data_dir) -> Optional[str]:
     """获取浏览器可用户目录"""
     browsers = {
         "default": user_data_dir,
-        "chrome.exe": rf'C:\Users\{getpass.getuser()}\AppData\Local\Google\Chrome\User Data\Default',
-        "msedge.exe": rf"C:\Users\{getpass.getuser()}\AppData\Local\Microsoft\Edge\User Data\Default",
+        "chrome.exe": rf'C:\Users\{getpass.getuser()}\AppData\Local\Google\Chrome\User Data',  # 使用默认配置文件时无法创建CDP
+        "msedge.exe": rf"C:\Users\{getpass.getuser()}\AppData\Local\Microsoft\Edge\User Data",
     }
     for k, v in browsers.items():
         if v is None:
@@ -136,6 +136,10 @@ class BrowserManager:
         command = [executable_path, f'--remote-debugging-port={port}', '--start-maximized']
         if self.devtools:
             command.append('--auto-open-devtools-for-tabs')
+        if self.user_data_dir:
+            command.append(f'--user-data-dir={self.user_data_dir}')
+        else:
+            logger.warning('Chrome必须另行指定`--user-data-dir`才能创建CDP连接')
 
         for i in range(2):
             try:
@@ -251,7 +255,7 @@ async def query(
         max_page: int = 5,
         rename: bool = False,
         site: Site = Site.THS,
-        ) -> pd.DataFrame:
+) -> pd.DataFrame:
     """查询表格
 
     Parameters
