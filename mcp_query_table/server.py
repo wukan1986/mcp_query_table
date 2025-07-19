@@ -22,9 +22,9 @@ class QueryServer:
                                       devtools=False,
                                       headless=True)
 
-    async def query(self, query_input: str, query_type: QueryType, max_page: int, site: Site):
+    async def query(self, query_input: str, query_type: QueryType, max_page: int, rename: bool, site: Site):
         page = await self.browser.get_page()
-        df = await qt_query(page, query_input, query_type, max_page, site)
+        df = await qt_query(page, query_input, query_type, max_page, rename, site)
         self.browser.release_page(page)
 
         if self.format == 'csv':
