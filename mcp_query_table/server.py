@@ -1,7 +1,7 @@
 from typing import Annotated, List
 
+import fastmcp
 from loguru import logger
-from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
 from mcp_query_table import QueryType, Site, query as qt_query, chat as qt_chat
@@ -41,8 +41,7 @@ class QueryServer:
         return txt
 
 
-# !!!log_level这一句非常重要，否则Cline/MCP Server/Tools工作不正常
-mcp = FastMCP("query_table_mcp", log_level="ERROR")
+mcp = fastmcp.FastMCP("query_table_mcp")
 qsv = QueryServer()
 
 
@@ -76,11 +75,10 @@ def serve(format, endpoint, executable_path, user_data_dir, transport, host, por
     logger.info(f"{endpoint=}")
     logger.info(f"{executable_path=}")
     logger.info(f"{user_data_dir=}")
-    if transport == 'sse':
-        logger.info(f"{transport=},{format=},{host=},{port=}")
-    else:
-        logger.info(f"{transport=},{format=}")
 
-    mcp.settings.host = host
-    mcp.settings.port = port
-    mcp.run(transport=transport)
+    if transport == "stdio":
+        logger.info(f"{transport=},{format=}")
+        mcp.run(transport=transport)
+    else:
+        logger.info(f"{transport=},{format=},{host=},{port=}")
+        mcp.run(transport=transport, host=host, port=port)

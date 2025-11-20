@@ -17,7 +17,7 @@ dependencies = [
     "loguru",
     "playwright",
     "playwright-stealth>=2.0.0", # https://github.com/Mattwmaster58/playwright_stealth
-    "mcp",
+    "fastmcp",
     "tabulate"
 ]
 dynamic = ["version"]
