@@ -12,17 +12,17 @@
 1. 安装两款浏览器，其中一款必须是`Chrome`(用于`playwright`控制)。另外一款用于访问`Streamlit`，如`Edge`
 2. 安装依赖
    ```bash
-   pip install -r requirements.txt
+   uv pip install -r requirements.txt
    playwright install chromium
    ```
 3. 启动`MCP`服务`SSE`模式
    ```bash
    # Linux下的无头模式，速度更快。不用登录
-   python -m mcp_query_table --format markdown --transport sse --port 8000 --endpoint --executable_path --user_data_dir
+   uv run python -m mcp_query_table --format markdown --transport sse --port 8000 --endpoint --executable_path --user_data_dir
    ```
 4. 启动`Streamlit`应用
    ```bash
-   streamlit run app.py --server.enableStaticServing=true --theme.codeFont="SimSun, monospace" --server.port=51015
+   uv run python -m streamlit run app.py --server.enableStaticServing=true --theme.codeFont="SimSun, monospace" --server.port=51015
    ```
 5. 打开`Edge`浏览器，访问`http://localhost:51015/`
 

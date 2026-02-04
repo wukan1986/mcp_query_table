@@ -1,5 +1,6 @@
-import getpass
+import asyncio
 
+from mcp_query_table.playwright_helper import get_chrome_use_data
 from mcp_query_table.server import serve
 
 
@@ -17,7 +18,7 @@ def main():
     parser.add_argument("--executable_path", type=str, help="浏览器路径",
                         nargs="?", default=r'C:\Program Files\Google\Chrome\Application\chrome.exe')
     parser.add_argument("--user_data_dir", type=str, help="浏览器用户数据目录",
-                        nargs="?", default=rf'C:\Users\{getpass.getuser()}\AppData\Local\Google\Chrome\User Data')
+                        nargs="?", default=f'{get_chrome_use_data()}')
     parser.add_argument("--transport", type=str, help="传输类型",
                         default='stdio', choices=['stdio', 'sse', 'streamable-http'])
     parser.add_argument("--host", type=str, help="MCP服务端绑定地址",
@@ -25,9 +26,10 @@ def main():
     parser.add_argument("--port", type=int, help="MCP服务端绑定端口",
                         default='8000')
     args = parser.parse_args()
-    serve(args.format, args.endpoint,
-          args.executable_path, args.user_data_dir,
-          args.transport, args.host, args.port)
+
+    asyncio.run(serve(args.format,
+                      args.endpoint, args.executable_path, args.user_data_dir,
+                      args.transport, args.host, args.port))
 
 
 if __name__ == "__main__":

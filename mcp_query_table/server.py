@@ -6,7 +6,7 @@ from pydantic import Field
 
 from mcp_query_table import QueryType, Site, query as qt_query, chat as qt_chat
 from mcp_query_table.enums import Provider
-from mcp_query_table.tool import BrowserManager
+from mcp_query_table.playwright_helper import AsyncBrowser
 
 
 class QueryServer:
@@ -14,18 +14,16 @@ class QueryServer:
         self.format: str = "markdown"
         self.browser = None
 
-    def start(self, format, endpoint, executable_path, user_data_dir):
+    async def start(self, format, endpoint, executable_path, user_data_dir):
         self.format: str = format
-        self.browser = BrowserManager(endpoint=endpoint,
-                                      executable_path=executable_path,
-                                      user_data_dir=user_data_dir,
-                                      devtools=False,
-                                      headless=True)
+        self.browser = await AsyncBrowser(endpoint=endpoint,
+                                          executable_path=executable_path,
+                                          devtools=False,
+                                          user_data_dir=user_data_dir).__aenter__()
 
     async def query(self, query_input: str, query_type: QueryType, max_page: int, rename: bool, site: Site):
         page = await self.browser.get_page()
         df = await qt_query(page, query_input, query_type, max_page, rename, site)
-        self.browser.release_page(page)
 
         if self.format == 'csv':
             return df.to_csv()
@@ -37,7 +35,6 @@ class QueryServer:
     async def chat(self, prompt: str, create: bool, files: List[str], provider: Provider):
         page = await self.browser.get_page()
         txt = await qt_chat(page, prompt, create, files, provider)
-        self.browser.release_page(page)
         return txt
 
 
@@ -70,15 +67,15 @@ async def chat(
     return await qsv.chat(prompt, create, files, provider)
 
 
-def serve(format, endpoint, executable_path, user_data_dir, transport, host, port):
-    qsv.start(format, endpoint, executable_path, user_data_dir)
+async def serve(format, endpoint, executable_path, user_data_dir, transport, host, port):
     logger.info(f"{endpoint=}")
     logger.info(f"{executable_path=}")
     logger.info(f"{user_data_dir=}")
+    await qsv.start(format, endpoint, executable_path, user_data_dir)
 
     if transport == "stdio":
         logger.info(f"{transport=},{format=}")
-        mcp.run(transport=transport)
+        await mcp.run_async(transport=transport)
     else:
         logger.info(f"{transport=},{format=},{host=},{port=}")
-        mcp.run(transport=transport, host=host, port=port)
+        await mcp.run_async(transport=transport, host=host, port=port)
