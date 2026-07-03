@@ -5,6 +5,7 @@ https://www.iwencai.com/
 1. 一定要保证浏览器宽度>768，防止界面变成适应手机
 
 """
+import json
 import re
 
 import pandas as pd
@@ -14,9 +15,9 @@ from playwright.async_api import Page
 from mcp_query_table.enums import QueryType
 
 # 初次查询页面
-_PAGE1_ = 'https://www.iwencai.com/customized/chart/get-robot-data'
+_PAGE1_ = 'https://www.iwencai.com/gateway/aime/stream-query'
 # 翻页
-_PAGE2_ = 'https://www.iwencai.com/gateway/urp/v7/landing/getDataList'
+_PAGE2_ = 'https://www.iwencai.com/gateway/render/encrypt/getData'
 
 _querytype_ = {
     QueryType.CNStock: 'stock',
@@ -103,39 +104,35 @@ class Pagination:
 P = Pagination()
 
 
-def get_robot_data(json_data):
-    """
-json_data['data']['answer'][0]['txt'][0]['content']['components'][0]['data']['datas']
-json_data['data']['answer'][0]['txt'][0]['content']['components'][0]['data']['meta']['limit'] 100
-json_data['data']['answer'][0]['txt'][0]['content']['components'][0]['data']['meta']['page'] 1
-json_data['data']['answer'][0]['txt'][0]['content']['components'][0]['data']['meta']['extra']['row_count'] 1364
-    """
-    _1 = json_data['data']['answer'][0]['txt'][0]['content']['components'][0]['data']
-    _2 = _1['meta']
+def stream_query(text):
+    for line in text.splitlines():
+        if not line.startswith('data:'):
+            continue
+        data = json.loads(line[5:].strip())
+        if data['answer_path'] == "other/openAnswer":
+            return other_openAnswer(data)
+
+
+def other_openAnswer(data):
+    _1 = data["section"]["result_page"]["components"][0]['data']
 
     datas = _1['datas']
-    columns = _1['columns']
-    page = _2['page']
-    limit = _2['limit']
-    row_count = _2['extra']['row_count']
+    columns = _1["columns"]
+    page = 1
+    limit = _1["dataSize"]
+    row_count = _1['row_count']
 
     return datas, columns, page, limit, row_count
 
 
-def getDataList(json_data):
-    """
-json_data['answer']['components'][0]['data']['datas']
-json_data['answer']['components'][0]['data']['meta']['page']
-json_data['answer']['components'][0]['data']['meta']['limit']
-json_data['answer']['components'][0]['data']['meta']['extra']['row_count']
-    """
+def getData(page, perpage, json_data):
     _1 = json_data['answer']['components'][0]['data']
     _2 = _1['meta']
 
     datas = _1['datas']
     columns = _1['columns']
-    page = _2['page']
-    limit = _2['limit']
+    page = page
+    limit = perpage
     row_count = _2['extra']['row_count']
 
     return datas, columns, int(page), int(limit), row_count
@@ -143,9 +140,13 @@ json_data['answer']['components'][0]['data']['meta']['extra']['row_count']
 
 async def on_response(response):
     if response.url == _PAGE1_:
-        P.update(*get_robot_data(await response.json()))
+        P.update(*stream_query(await response.text()))
     if response.url == _PAGE2_:
-        P.update(*getDataList(await response.json()))
+        post_data_json = response.request.post_data_json
+        page = post_data_json['page']
+        perpage = post_data_json['perpage']
+
+        P.update(*getData(page, perpage, await response.json()))
 
 
 async def query(page: Page,
@@ -163,7 +164,7 @@ async def query(page: Page,
     # 宽度<=768会认为是手机,>768是PC
     await page.set_viewport_size({"width": 1280, "height": 800})
     async with page.expect_response(_PAGE1_) as response_info:
-        await page.goto(f"https://www.iwencai.com/unifiedwap/result?w={w}&querytype={querytype}", wait_until="load")
+        await page.goto(f"https://www.iwencai.com/screener/result?w={w}&querytype={querytype}", wait_until="load")
     await on_response(await response_info.value)
 
     while P.has_next(max_page):

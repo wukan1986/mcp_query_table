@@ -1,21 +1,19 @@
 import asyncio
-import getpass
 
 from mcp_query_table import *
 from mcp_query_table.enums import Provider
+from mcp_query_table.playwright_helper import AsyncBrowser, get_chrome_path, kill_browsers  # noqa
 
 
 async def main() -> None:
-    endpoint = "http://127.0.0.1:9222"
-    executable_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-    user_data_dir = rf'C:\Users\{getpass.getuser()}\AppData\Local\Google\Chrome\User Data\Default'
-    async with BrowserManager(endpoint=None,
-                              executable_path=executable_path,
-                              devtools=False,
-                              headless=True,
-                              user_data_dir=user_data_dir) as bm:
-        page1 = await bm.get_page()
-        page2 = await bm.get_page()
+    kill_browsers("chrome.exe")
+    # kill_browsers("msedge.exe")
+    async with AsyncBrowser(endpoint="http://127.0.0.1:9222",
+                            executable_path=get_chrome_path(),
+                            devtools=True,
+                            user_data_dir="D:\\user_data") as browser:
+        page1 = await browser.get_page()
+        page2 = await browser.get_page()
 
         with open("mcp.txt", 'r', encoding='utf-8') as f:
             prompt = f.read()
@@ -38,8 +36,10 @@ async def main() -> None:
         output = await chat(page2, "描述下文件内容", files=files, provider=Provider.BaiDu)
         print(output)
 
-        bm.release_page(page1)
-        bm.release_page(page2)
+        print('done')
+        await page1.wait_for_timeout(2000)
+
+
 
 
 if __name__ == '__main__':
